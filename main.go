@@ -35,12 +35,12 @@ var opts struct {
 func run(args []string) error {
 	// parse CLI
 	root := &climan.Command{
-		Name:           "golang-repo-template",
-		ShortUsage:     "golang-repo-template [global flags] <subcommand> [flags] [args]",
-		ShortHelp:      "More info on https://moul.io/golang-repo-template.",
+		Name:           "adapterkit",
+		ShortUsage:     "adapterkit [global flags] <subcommand> [flags] [args]",
+		ShortHelp:      "More info on https://moul.io/adapterkit.",
 		FlagSetBuilder: func(fs *flag.FlagSet) { fs.BoolVar(&opts.Debug, "debug", opts.Debug, "debug mode") },
 		Exec:           doRoot,
-		FFOptions:      []ff.Option{ff.WithEnvVarPrefix("golang-repo-template")},
+		FFOptions:      []ff.Option{ff.WithEnvVarPrefix("adapterkit")},
 		// Subcommands:    []*climan.Command{},
 		// LongHelp: "",
 	}
