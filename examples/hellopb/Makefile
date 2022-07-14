@@ -3,4 +3,3 @@ build:
 	protoc -I. --go_out=. hello.proto
 	mv moul.io/adapterkit/examples/hellopb/*.go .
 	find . -type f
-	tree

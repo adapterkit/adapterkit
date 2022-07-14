@@ -1,6 +1,6 @@
 GOPKG ?=	moul.io/adapterkit
 DOCKER_IMAGE ?=	moul/adapterkit
-GOBINS ?=	.
+GOBINS ?=	./cmd/adapterkit
 NPM_PACKAGES ?=	.
 
 include rules.mk
