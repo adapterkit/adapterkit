@@ -26,4 +26,4 @@
 //	|/  |       |  \    \ /                    /  ' \/ _ \/ // / / |
 //	||  |       |  |    | |                   /_/_/_/\___/\_,_/_/  |
 //	+--------------------------------------------------------------+
-package main // import "moul.io/adapterkit"
+package adapterkit // import "moul.io/adapterkit"
