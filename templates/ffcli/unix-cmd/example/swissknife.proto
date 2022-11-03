@@ -1,0 +1,30 @@
+syntax = "proto3";
+option go_package = "./;demomod";
+package io.moul.adapterkit_module_demo;
+
+service DemomodSvc {
+  rpc Sum(SumRequest) returns (SumResult) {};
+  rpc SayHello(Empty) returns (HelloResult) {};
+  rpc EchoStream(stream EchoStreamInput) returns (stream EchoStreamOutput) {};
+}
+
+message Empty {}
+
+message SumRequest {
+  int64 a = 1;
+  int64 b = 2;
+}
+message SumResult {
+  int64 c = 1;
+}
+
+message HelloResult {
+  string msg = 1;
+}
+
+message EchoStreamInput {
+  string text = 1;
+}
+message EchoStreamOutput {
+  string reply = 2;
+}
