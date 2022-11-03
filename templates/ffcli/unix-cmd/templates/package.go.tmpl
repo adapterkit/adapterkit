@@ -1,0 +1,78 @@
+{{- $package := $.File.Options.GoPackage | replace "./;" "" -}}
+package {{$package}}_gen
+
+import (
+    "context"
+    "log"
+
+    "google.golang.org/grpc"
+    "moul.io/adapterkit/pkg/lib"
+
+    {{$package}} ""
+)
+
+{{define "notOnFirstIter"}}{{with $list := .}}{{with $i := index $list 0}}{{with $toPrint := index $list 1}}
+    {{- if ne $i 0 -}} {{$toPrint}} {{- end -}}
+{{end}}{{end}}{{end}}{{end -}}
+
+{{- define "upperFormat" -}} 
+    {{with $w := . -}} 
+    {{$list := regexSplit "\\." $w -1 -}} 
+    {{$f := index $list 0 -}}
+    {{range $i, $d := $list -}}
+        {{if ne 0 $i -}} {{$f = cat $f "_" -}} {{$f = cat $f $d|title -}} {{$f = $f | replace " " ""}} {{- end}}
+    {{- end}}
+    {{- $f | printf "%s"}}
+{{- end}}{{end}}
+
+{{- define "iterateOnFieldsName&Type"}}{{with $t := .}}  
+    {{- range $i, $f := $t.Field -}}{{template "notOnFirstIter" $x := list $i ", " -}} {{$f.Name -}} {{$var := $f | goTypeWithPackage}} {{template "upperFormat" $var}}  
+{{- end}}{{end}}{{end}}
+
+{{-  define "iterateOnFieldsType"}}{{with $t := .}}  
+    {{- range $i, $f := $t.Field -}}{{template "notOnFirstIter" $x := list $i ", " -}}{{$var := $f | goTypeWithPackage}}{{template "upperFormat" $var}}  
+{{- end}}{{end}}{{end}}
+
+{{- define "iterateOnFieldsToFill"}}{{with $t := .}}  
+    {{- range $i, $f := $t.Field -}}{{template "notOnFirstIter" $x := list $i ", " -}}  {{$f.Name | title}}: {{$f.Name}} 
+{{- end}}{{end}}{{end}}
+
+{{- define "iterateOnFieldsToExtract"}}{{with $t := .}}  
+    {{- range $i, $f := $t.Field -}}{{template "notOnFirstIter" $x := list $i ", " -}}  res.{{$f.Name | title}} 
+{{- end}}{{end}}{{end}}
+
+{{- range $m := .Service.Method}}
+func Svc{{$m.Name}}
+{{- with $t := $m.InputType | getMessageType $.File -}}
+    ( {{- template "iterateOnFieldsName&Type" $t -}} )
+{{- end}}
+{{- with $t := $m.OutputType | getMessageType $.File -}}
+    {{""}} ( {{- template "iterateOnFieldsType" $t -}} , error)
+{{- end}} {
+{{- if and (not .ServerStreaming) (not .ClientStreaming)}}
+	ctx := context.Background()
+
+	conn, err := grpc.DialContext(ctx, "",
+		grpc.WithInsecure(),
+ 		grpc.WithContextDialer(lib.Dialer({{$package}}.{{$package | title}}SvcServer(&{{$package}}.Service{}), {{$package}}.Register{{$package | title}}SvcServer)))
+    if err != nil {
+		log.Fatal(err)
+	}
+    defer conn.Close()
+    
+    client := {{$package}}.New{{$package | title}}SvcClient(conn)
+    req := &{{$package}}.
+    {{- with $t := $m.InputType | getMessageType $.File}}
+        {{- $t.Name}} {{- "{" -}} {{template "iterateOnFieldsToFill" $t -}} }
+    {{- end}}
+    res, err := client.{{$m.Name}}(ctx, req)
+    {{- with $t := $m.OutputType | getMessageType $.File}}
+    return {{template "iterateOnFieldsToExtract" $t}}, err
+    {{- end}}
+}
+{{- else}}
+    panic("not implemented")
+}
+{{- end}}
+
+{{end}}
