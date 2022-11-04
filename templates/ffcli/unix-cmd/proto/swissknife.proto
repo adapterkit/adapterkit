@@ -1,0 +1,24 @@
+syntax = "proto3";
+option go_package = "./;swissknife";
+
+service SwissknifeSvc {
+  rpc ConvHexa(ConvHexaReq) returns (ConvHexaRes) {};
+  rpc ConvBase64(ConvBase64Req) returns (ConvBase64Res) {};
+}
+
+message ConvHexaReq {
+  string input = 1;
+}
+
+message ConvHexaRes {
+  string output = 1;
+}
+
+message ConvBase64Req {
+  string input = 1;
+}
+
+message ConvBase64Res {
+  string output = 1;
+}
+
