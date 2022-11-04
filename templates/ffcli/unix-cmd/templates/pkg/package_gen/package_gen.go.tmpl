@@ -16,7 +16,7 @@ import (
 {{end}}{{end}}{{end}}{{end -}}
 
 {{- define "upperFormat" -}} 
-    {{with $w := . -}} 
+    {{with $w := . -}}
     {{$list := regexSplit "\\." $w -1 -}} 
     {{$f := index $list 0 -}}
     {{range $i, $d := $list -}}
@@ -26,12 +26,19 @@ import (
 {{- end}}{{end}}
 
 {{- define "iterateOnFieldsName&Type"}}{{with $t := .}}  
-    {{- range $i, $f := $t.Field -}}{{template "notOnFirstIter" $x := list $i ", " -}} {{$f.Name -}} {{$var := $f | goTypeWithPackage}} {{template "upperFormat" $var}}  
+    {{- range $i, $f := $t.Field -}}{{template "notOnFirstIter" $x := list $i ", " -}} {{$f.Name -}}{{$var := $f | goTypeWithPackage}} {{template "upperFormat" $var}}  
 {{- end}}{{end}}{{end}}
 
-{{-  define "iterateOnFieldsType"}}{{with $t := .}}  
-    {{- range $i, $f := $t.Field -}}{{template "notOnFirstIter" $x := list $i ", " -}}{{$var := $f | goTypeWithPackage}}{{template "upperFormat" $var}}  
-{{- end}}{{end}}{{end}}
+{{-  define "iterateOnFieldsType"}}{{$slice := . -}}
+    {{with $t := index $slice 0 -}} 
+    {{with $package := index $slice 1 -}}
+    {{- range $i, $f := $t.Field -}}{{template "notOnFirstIter" $x := list $i ", " -}}
+    {{$tmp := $f.Type | toString -}}
+    {{- if eq $tmp "TYPE_MESSAGE" -}}{{"*"}}{{$package}}{{"." -}} 
+    {{$var := $f | goTypeWithPackage | replace "*" ""}}{{template "upperFormat" $var -}}
+    {{else}}{{$var := $f | goTypeWithPackage}}{{template "upperFormat" $var -}}
+    {{end -}}
+{{- end}}{{end}}{{end}}{{end}}
 
 {{- define "iterateOnFieldsToFill"}}{{with $t := .}}  
     {{- range $i, $f := $t.Field -}}{{template "notOnFirstIter" $x := list $i ", " -}}  {{$f.Name | title}}: {{$f.Name}} 
@@ -47,7 +54,7 @@ func Svc{{$m.Name}}
     ( {{- template "iterateOnFieldsName&Type" $t -}} )
 {{- end}}
 {{- with $t := $m.OutputType | getMessageType $.File -}}
-    {{""}} ( {{- template "iterateOnFieldsType" $t -}} , error)
+    {{""}} ( {{- template "iterateOnFieldsType" $list := list $t $package -}} , error)
 {{- end}} {
 {{- if and (not .ServerStreaming) (not .ClientStreaming)}}
 	ctx := context.Background()
