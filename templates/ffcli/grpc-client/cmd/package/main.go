@@ -7,7 +7,6 @@ import (
     "log"
     "os"
 
-    "test/pkg/package_gen"
 
     "github.com/peterbourgon/ff/v3"
     "github.com/peterbourgon/ff/v3/ffcli"
