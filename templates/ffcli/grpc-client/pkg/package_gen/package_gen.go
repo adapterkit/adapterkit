@@ -9,7 +9,7 @@ import (
 
     _ "moul.io/adapterkit/pkg/lib"
 
-    swissknife "github.com/pmg-tools/adapterkit-module-swissknife"
+    swissknife ""
 )
 
 
