@@ -6,9 +6,11 @@ import (
     "log"
 
     "google.golang.org/grpc"
-    "moul.io/adapterkit/pkg/lib"
+	"google.golang.org/grpc/credentials/insecure"
 
-    {{$package}} ""
+    _ "moul.io/adapterkit/pkg/lib"
+
+    {{$package}} "$[ADAPTERKIT_LOGIC_PACKAGE]"
 )
 
 {{define "notOnFirstIter"}}{{with $list := .}}{{with $i := index $list 0}}{{with $toPrint := index $list 1}}
@@ -59,9 +61,7 @@ func Svc{{$m.Name}}
 {{- if and (not .ServerStreaming) (not .ClientStreaming)}}
 	ctx := context.Background()
 
-	conn, err := grpc.DialContext(ctx, "",
-		grpc.WithInsecure(),
- 		grpc.WithContextDialer(lib.Dialer({{$package}}.{{$package | title}}SvcServer(&{{$package}}.Service{}), {{$package}}.Register{{$package | title}}SvcServer)))
+	conn, err := grpc.DialContext(ctx, {{/* MUST BE REPLACED BY ARG GEST */}}"127.0.0.1:9314", grpc.WithTransportCredentials(insecure.NewCredentials()))
     if err != nil {
 		log.Fatal(err)
 	}

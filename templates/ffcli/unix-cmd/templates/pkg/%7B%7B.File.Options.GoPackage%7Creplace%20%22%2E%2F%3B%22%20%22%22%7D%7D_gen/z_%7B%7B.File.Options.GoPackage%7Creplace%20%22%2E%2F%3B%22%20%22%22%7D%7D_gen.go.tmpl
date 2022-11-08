@@ -6,11 +6,9 @@ import (
     "log"
 
     "google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
+    "moul.io/adapterkit/pkg/lib"
 
-    _ "moul.io/adapterkit/pkg/lib"
-
-    {{$package}} ""
+    {{$package}} "$[ADAPTERKIT_LOGIC_PACKAGE]"
 )
 
 {{define "notOnFirstIter"}}{{with $list := .}}{{with $i := index $list 0}}{{with $toPrint := index $list 1}}
@@ -53,7 +51,7 @@ import (
 {{- range $m := .Service.Method}}
 func Svc{{$m.Name}}
 {{- with $t := $m.InputType | getMessageType $.File -}}
-    ( {{- template "iterateOnFieldsName&Type" $t -}} )
+    ( {{- template "iterateOnFieldsName&Type" $t -}}, svc {{$package}}.{{$package | title}}SvcServer)
 {{- end}}
 {{- with $t := $m.OutputType | getMessageType $.File -}}
     {{""}} ( {{- template "iterateOnFieldsType" $list := list $t $package -}} , error)
@@ -61,7 +59,9 @@ func Svc{{$m.Name}}
 {{- if and (not .ServerStreaming) (not .ClientStreaming)}}
 	ctx := context.Background()
 
-	conn, err := grpc.DialContext(ctx, {{/* MUST BE REPLACED BY ARG GEST */}}"127.0.0.1:9314", grpc.WithTransportCredentials(insecure.NewCredentials()))
+	conn, err := grpc.DialContext(ctx, "",
+		grpc.WithInsecure(),
+ 		grpc.WithContextDialer(lib.Dialer(svc, {{$package}}.Register{{$package | title}}SvcServer)))
     if err != nil {
 		log.Fatal(err)
 	}
