@@ -48,19 +48,25 @@ import (
     "log"
     "os"
 
+    "$[ADAPTERKIT_GOMOD]/pkg/{{$package}}_gen"
 
     "github.com/peterbourgon/ff/v3"
     "github.com/peterbourgon/ff/v3/ffcli"
+    {{$package}} "$[ADAPTERKIT_LOGIC_PACKAGE]"
 )
 
+func initSvc() {{$package}}.{{$package | title}}SvcServer {
+	return {{$package}}.New()
+}
+
 func main() {
-    if err := {{$package}}(os.Args[1:]); err != nil {
+    if err := {{$package}}Run(os.Args[1:]); err != nil {
         log.Fatal(err)
     }
     return
 }
 
-func {{$package}}(args []string) error {
+func {{$package}}Run(args []string) error {
     rootFlagSet := flag.NewFlagSet("{{$package}}", flag.ExitOnError)
 
     root := &ffcli.Command{
@@ -69,7 +75,7 @@ func {{$package}}(args []string) error {
         Options:    []ff.Option{ff.WithEnvVarNoPrefix()},
         Subcommands: []*ffcli.Command{
 {{- range $m := .Service.Method}}
-            {{$m.Name}}(),
+            {{$m.Name | lowerFirst}}(),
 {{- end}}
         },
         Exec: func(_ context.Context, _ []string) error {
@@ -84,7 +90,7 @@ func {{$package}}(args []string) error {
 {{- range $m := .Service.Method}}
 {{- $p := $m.Name | lowerFirst}}
 {{- $t := $m.InputType | getMessageType $.File}} 
-func {{$m.Name}}() *ffcli.Command {
+func {{$p}}() *ffcli.Command {
     {{template "iterateOnFieldsName&Type1" $t}}
     {{$p}}FlagSet := flag.NewFlagSet("{{$m.Name | lowerFirst}}", flag.ExitOnError)
     {{template "iterateOnFieldsFfcliName&Type" $x := list $t $p}}
@@ -94,7 +100,7 @@ func {{$m.Name}}() *ffcli.Command {
         Options:    []ff.Option{ff.WithEnvVarNoPrefix()},   
         FlagSet:    {{$p}}FlagSet,
         Exec: func(_ context.Context, _ []string) error {
-            result, err := {{template "PKG" $package}}.Svc{{$m.Name}}({{template "iterateOnFieldsName" $t}})
+            result, err := {{template "PKG" $package}}.Svc{{$m.Name}}({{template "iterateOnFieldsName" $t}}, initSvc())
             if err != nil {
                 return err
             }

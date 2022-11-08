@@ -5,13 +5,16 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"net"
 	"os"
 
 	"test/pkg/swissknife_gen"
 
+	"google.golang.org/grpc"
+
 	"github.com/peterbourgon/ff/v3"
 	"github.com/peterbourgon/ff/v3/ffcli"
-	"github.com/pmg-tools/adapterkit-module-swissknife"
+	swissknife "github.com/pmg-tools/adapterkit-module-swissknife"
 )
 
 func initSvc() swissknife.SwissknifeSvcServer {
@@ -35,6 +38,7 @@ func swissknifeRun(args []string) error {
 		Subcommands: []*ffcli.Command{
 			convHexa(),
 			convBase64(),
+			server(),
 		},
 		Exec: func(_ context.Context, _ []string) error {
 			return flag.ErrHelp
@@ -53,7 +57,7 @@ func convHexa() *ffcli.Command {
 		Options:    []ff.Option{ff.WithEnvVarNoPrefix()},
 		FlagSet:    convHexaFlagSet,
 		Exec: func(_ context.Context, _ []string) error {
-			result, err := swissknife_gen.SvcConvHexa(input, initSvc())
+			result, err := swissknife_gen.SvcConvHexa(input)
 			if err != nil {
 				return err
 			}
@@ -74,7 +78,7 @@ func convBase64() *ffcli.Command {
 		Options:    []ff.Option{ff.WithEnvVarNoPrefix()},
 		FlagSet:    convBase64FlagSet,
 		Exec: func(_ context.Context, _ []string) error {
-			result, err := swissknife_gen.SvcConvBase64(input, initSvc())
+			result, err := swissknife_gen.SvcConvBase64(input)
 			if err != nil {
 				return err
 			}
@@ -85,3 +89,22 @@ func convBase64() *ffcli.Command {
 	}
 }
 
+func server() *ffcli.Command {
+	return &ffcli.Command{
+		Name:       "server",
+		ShortUsage: "swissknife start",
+		Options:    []ff.Option{ff.WithEnvVarNoPrefix()},
+		Exec: func(_ context.Context, _ []string) error {
+			lis, err := net.Listen("tcp", "127.0.0.1:9314")
+			if err != nil {
+				return err
+			}
+			grpcServer := grpc.NewServer()
+
+			swissknife.RegisterSwissknifeSvcServer(grpcServer, initSvc())
+
+			fmt.Println("starting demo-mod_gen server on port 9314:")
+			return grpcServer.Serve(lis)
+		},
+	}
+}
