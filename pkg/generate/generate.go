@@ -70,10 +70,7 @@ func getModule(path string) string {
 				return ""
 			}
 
-			reg, err := regexp.Compile(`module (.*)`)
-			if err != nil {
-				return ""
-			}
+			reg := regexp.MustCompile(`module (.*)`)
 
 			return reg.FindStringSubmatch(string(content))[1]
 		}
@@ -94,30 +91,24 @@ func fillImport(path, logicPackage, currentModule string) error {
 			if err != nil {
 				return err
 			}
-		} else {
-			fmt.Println(file.Name())
-			content, err := os.ReadFile(path + "/" + file.Name())
-			if err != nil {
-				return err
-			}
+			continue
+		}
 
-			reg, err := regexp.Compile(`\$\[ADAPTERKIT_GOMOD]`)
-			if err != nil {
-				return err
-			}
-			content = reg.ReplaceAll(content, []byte(currentModule))
+		content, err := os.ReadFile(path + "/" + file.Name())
+		if err != nil {
+			return err
+		}
 
-			reg, err = regexp.Compile(`\$\[ADAPTERKIT_LOGIC_PACKAGE]`)
-			if err != nil {
-				return err
-			}
-			content = reg.ReplaceAll(content, []byte(logicPackage))
+		reg := regexp.MustCompile(`\$\[ADAPTERKIT_GOMOD]`)
+		content = reg.ReplaceAll(content, []byte(currentModule))
 
-			fmt.Println(string(content))
-			err = os.WriteFile(path+"/"+file.Name(), content, 0644)
-			if err != nil {
-				return err
-			}
+		reg = regexp.MustCompile(`\$\[ADAPTERKIT_LOGIC_PACKAGE]`)
+		content = reg.ReplaceAll(content, []byte(logicPackage))
+
+		fmt.Println(string(content))
+		err = os.WriteFile(path+"/"+file.Name(), content, 0o600) //nolint
+		if err != nil {
+			return err
 		}
 	}
 
