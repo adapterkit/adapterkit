@@ -5,5 +5,4 @@ adapterkit:
 
 .PHONY: clean
 clean:
-	rm -rf pkg/**/*_gen
-	rm -f cmd/**/main.go
+	rm -rf pkg/*_gen
