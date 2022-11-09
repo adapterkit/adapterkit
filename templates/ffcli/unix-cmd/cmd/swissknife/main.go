@@ -7,11 +7,11 @@ import (
     "log"
     "os"
 
-    "$[ADAPTERKIT_GOMOD]/pkg/swissknife_gen"
+    "test/pkg/swissknife_gen"
 
     "github.com/peterbourgon/ff/v3"
     "github.com/peterbourgon/ff/v3/ffcli"
-    swissknife "$[ADAPTERKIT_LOGIC_PACKAGE]"
+    swissknife "github.com/pmg-tools/adapterkit-module-swissknife"
 )
 
 func initSvc() swissknife.SwissknifeSvcServer {

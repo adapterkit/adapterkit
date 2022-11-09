@@ -11,7 +11,7 @@ require (
 
 require (
 	github.com/golang/protobuf v1.5.2 // indirect
-	github.com/pmg-tools/adapterkit-module-swissknife v0.0.0-20221103155247-d7bea65ecea8 // indirect
+	github.com/pmg-tools/adapterkit-module-swissknife v0.0.0-20221108131630-cedbc69f5d28 // indirect
 	golang.org/x/net v0.0.0-20210405180319-a5a99cb37ef4 // indirect
 	golang.org/x/sys v0.0.0-20210510120138-977fb7262007 // indirect
 	golang.org/x/text v0.3.3 // indirect
