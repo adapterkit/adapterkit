@@ -42,7 +42,7 @@ func swissknifeRun(args []string) error {
     }
 
     return root.ParseAndRun(context.Background(), args)
-} 
+}
 func convHexa() *ffcli.Command {
     var input string
     convHexaFlagSet := flag.NewFlagSet("convHexa", flag.ExitOnError)
@@ -50,7 +50,7 @@ func convHexa() *ffcli.Command {
     return &ffcli.Command{
         Name:       "convHexa",
         ShortUsage: "swissknife convHexa ${input}",
-        Options:    []ff.Option{ff.WithEnvVarNoPrefix()},   
+        Options:    []ff.Option{ff.WithEnvVarNoPrefix()},
         FlagSet:    convHexaFlagSet,
         Exec: func(_ context.Context, _ []string) error {
             result, err := swissknife_gen.SvcConvHexa(input, initSvc())
@@ -63,7 +63,7 @@ func convHexa() *ffcli.Command {
         },
     }
 }
- 
+
 func convBase64() *ffcli.Command {
     var input string
     convBase64FlagSet := flag.NewFlagSet("convBase64", flag.ExitOnError)
@@ -71,7 +71,7 @@ func convBase64() *ffcli.Command {
     return &ffcli.Command{
         Name:       "convBase64",
         ShortUsage: "swissknife convBase64 ${input}",
-        Options:    []ff.Option{ff.WithEnvVarNoPrefix()},   
+        Options:    []ff.Option{ff.WithEnvVarNoPrefix()},
         FlagSet:    convBase64FlagSet,
         Exec: func(_ context.Context, _ []string) error {
             result, err := swissknife_gen.SvcConvBase64(input, initSvc())

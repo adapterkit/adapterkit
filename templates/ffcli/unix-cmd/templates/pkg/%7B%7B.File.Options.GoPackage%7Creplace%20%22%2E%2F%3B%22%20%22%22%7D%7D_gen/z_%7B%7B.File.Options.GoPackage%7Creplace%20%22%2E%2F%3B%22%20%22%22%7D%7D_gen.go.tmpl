@@ -29,23 +29,8 @@ import (
     {{- range $i, $f := $t.Field -}}{{template "notOnFirstIter" $x := list $i ", " -}} {{$f.Name -}}{{$var := $f | goTypeWithPackage}} {{template "upperFormat" $var}}  
 {{- end}}{{end}}{{end}}
 
-{{-  define "iterateOnFieldsType"}}{{$slice := . -}}
-    {{with $t := index $slice 0 -}} 
-    {{with $package := index $slice 1 -}}
-    {{- range $i, $f := $t.Field -}}{{template "notOnFirstIter" $x := list $i ", " -}}
-    {{$tmp := $f.Type | toString -}}
-    {{- if eq $tmp "TYPE_MESSAGE" -}}{{"*"}}{{$package}}{{"." -}} 
-    {{$var := $f | goTypeWithPackage | replace "*" ""}}{{template "upperFormat" $var -}}
-    {{else}}{{$var := $f | goTypeWithPackage}}{{template "upperFormat" $var -}}
-    {{end -}}
-{{- end}}{{end}}{{end}}{{end}}
-
 {{- define "iterateOnFieldsToFill"}}{{with $t := .}}  
     {{- range $i, $f := $t.Field -}}{{template "notOnFirstIter" $x := list $i ", " -}}  {{$f.Name | title}}: {{$f.Name}} 
-{{- end}}{{end}}{{end}}
-
-{{- define "iterateOnFieldsToExtract"}}{{with $t := .}}  
-    {{- range $i, $f := $t.Field -}}{{template "notOnFirstIter" $x := list $i ", " -}}  res.{{$f.Name | title}} 
 {{- end}}{{end}}{{end}}
 
 {{- range $m := .Service.Method}}
@@ -54,7 +39,7 @@ func Svc{{$m.Name}}
     ( {{- template "iterateOnFieldsName&Type" $t -}}, svc {{$package}}.{{$package | title}}SvcServer)
 {{- end}}
 {{- with $t := $m.OutputType | getMessageType $.File -}}
-    {{""}} ( {{- template "iterateOnFieldsType" $list := list $t $package -}} , error)
+    {{""}} ({{"*"}}{{$package}}{{"." -}}{{$t.Name}}, error)
 {{- end}} {
 {{- if and (not .ServerStreaming) (not .ClientStreaming)}}
 	ctx := context.Background()
@@ -73,9 +58,11 @@ func Svc{{$m.Name}}
         {{- $t.Name}} {{- "{" -}} {{template "iterateOnFieldsToFill" $t -}} }
     {{- end}}
     res, err := client.{{$m.Name}}(ctx, req)
-    {{- with $t := $m.OutputType | getMessageType $.File}}
-    return {{template "iterateOnFieldsToExtract" $t}}, err
-    {{- end}}
+    if err != nil {
+		return nil, err
+	}
+    
+    return res, nil
 }
 {{- else}}
     panic("not implemented")
