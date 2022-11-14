@@ -81,6 +81,10 @@ func fillImport(path, logicPackage, currentModule string) error {
 	}
 
 	for _, file := range dir {
+		if file.Name()[0] == '.' {
+			continue
+		}
+
 		if file.IsDir() {
 			err := fillImport(path+"/"+file.Name(), logicPackage, currentModule)
 			if err != nil {
