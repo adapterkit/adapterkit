@@ -26,7 +26,7 @@ import (
 {{- end}}{{end}}
 
 {{- define "iterateOnFieldsName&Type"}}{{with $t := .}}  
-    {{- range $i, $f := $t.Field -}}{{template "notOnFirstIter" $x := list $i ", " -}} {{$f.Name -}}{{$var := $f | goTypeWithPackage}} {{template "upperFormat" $var}}  
+    {{- range $i, $f := $t.Field -}}{{$f.Name -}}{{$var := $f | goTypeWithPackage}} {{template "upperFormat" $var}},
 {{- end}}{{end}}{{end}}
 
 {{- define "iterateOnFieldsToFill"}}{{with $t := .}}  
@@ -36,7 +36,7 @@ import (
 {{- range $m := .Service.Method}}
 func Svc{{$m.Name}}
 {{- with $t := $m.InputType | getMessageType $.File -}}
-    ( {{- template "iterateOnFieldsName&Type" $t -}}, svc {{$package}}.{{$package | title}}SvcServer)
+    ( {{- template "iterateOnFieldsName&Type" $t -}} svc {{$package}}.{{$package | title}}SvcServer)
 {{- end}}
 {{- with $t := $m.OutputType | getMessageType $.File -}}
     {{""}} ({{"*"}}{{$package}}{{"." -}}{{$t.Name}}, error)

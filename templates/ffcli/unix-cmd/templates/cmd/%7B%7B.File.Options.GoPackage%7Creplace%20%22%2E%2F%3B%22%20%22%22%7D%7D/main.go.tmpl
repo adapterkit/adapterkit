@@ -35,8 +35,8 @@
     {{- $flagSet}}FlagSet.{{$var := $f | goTypeWithPackage}}{{template "PascalUpperFormat" $var}}Var(&{{$f.Name}}, "{{$f.Name | title}}", {{goZeroValue $f}}, "")  
 {{- end}}{{end}}{{end}}{{end}}{{end -}}
 
-{{- define "iterateOnFieldsName"}}{{with $t := .}}  
-    {{- range $i, $f := $t.Field -}}{{template "notOnFirstIter" $x := list $i ", " -}} {{$f.Name -}}  
+{{- define "iterateOnFieldsName"}}{{with $t := .}}
+    {{- range $i, $f := $t.Field -}} {{$f.Name -}}, 
 {{- end}}{{end}}{{end -}}
 
 package main
@@ -100,7 +100,7 @@ func {{$p}}() *ffcli.Command {
         Options:    []ff.Option{ff.WithEnvVarNoPrefix()},   
         FlagSet:    {{$p}}FlagSet,
         Exec: func(_ context.Context, _ []string) error {
-            result, err := {{template "PKG" $package}}.Svc{{$m.Name}}({{template "iterateOnFieldsName" $t}}, initSvc())
+            result, err := {{template "PKG" $package}}.Svc{{$m.Name}}({{template "iterateOnFieldsName" $t}} initSvc())
             if err != nil {
                 return err
             }
