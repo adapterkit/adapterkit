@@ -44,7 +44,7 @@ func run(args []string) error {
 		FFOptions:      []ff.Option{ff.WithEnvVarPrefix("adapterkit")},
 		Subcommands: []*climan.Command{
 			// subcommands
-			generate.Generate(),
+			generate.Cmd(),
 		},
 		// LongHelp: "",
 	}

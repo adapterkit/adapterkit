@@ -2,33 +2,46 @@ package generate
 
 import (
 	"context"
+	"errors"
 	"flag"
 	"fmt"
 	"log"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"regexp"
 
 	"moul.io/climan"
+	"moul.io/u"
 )
 
-func Generate() *climan.Command {
+func Cmd() *climan.Command {
 	var moduleRepo string
 	var outputDir string
 	var templateDir string
+	var protocBin string
 
 	return &climan.Command{
 		Name:       "generate",
-		ShortHelp:  "Generate code, you must specify the path to your protoc bin in the environment variable PROTOC_BIN",
+		ShortHelp:  "Generate code",
 		ShortUsage: "adapterkit generate [global flags] [flags] [args]",
 		FlagSetBuilder: func(fs *flag.FlagSet) {
 			fs.StringVar(&moduleRepo, "mod", "", "github repo where the module is located")
 			fs.StringVar(&outputDir, "out", ".", "output directory")
 			fs.StringVar(&templateDir, "tpl", "template", "template directory")
+			fs.StringVar(&protocBin, "protoc-bin", "protoc", "path to the 'protoc' binary")
 		},
-		Exec: func(_ context.Context, strings []string) error {
-			protocBin := os.Getenv("PROTOC_BIN")
-			cmd := exec.Command(protocBin, "-I.", fmt.Sprintf("--gotemplate_out=template_dir=%s,debug=true:%s", templateDir, outputDir), strings[0])
+		Exec: func(_ context.Context, args []string) error {
+			if len(args) != 1 {
+				return flag.ErrHelp
+			}
+			if !u.CommandExists(protocBin) {
+				return fmt.Errorf("protoc binary not found: %s", protocBin) //nolint:goerr113
+			}
+
+			gotemplateOpts := fmt.Sprintf("--gotemplate_out=template_dir=%s,debug=true:%s", templateDir, outputDir)
+			protoPath := args[0]
+			cmd := exec.Command(protocBin, "-I.", gotemplateOpts, protoPath)
 			cmd.Stdout = os.Stdout
 			cmd.Stderr = os.Stderr
 			err := cmd.Run()
@@ -36,7 +49,10 @@ func Generate() *climan.Command {
 				log.Println("error: ", err)
 			}
 
-			currentModule := getModule(outputDir)
+			currentModule, err := getModule(outputDir)
+			if err != nil {
+				return err
+			}
 
 			err = fillImport(outputDir, moduleRepo, currentModule)
 			if err != nil {
@@ -48,10 +64,12 @@ func Generate() *climan.Command {
 	}
 }
 
-func getModule(path string) string {
-	dir, err := os.ReadDir("./" + path)
+var errGetModule = errors.New("can't get module")
+
+func getModule(path string) (string, error) {
+	dir, err := os.ReadDir(path)
 	if err != nil {
-		return ""
+		return "", err
 	}
 
 	for _, file := range dir {
@@ -60,42 +78,48 @@ func getModule(path string) string {
 		}
 
 		if file.Name() == "go.mod" {
-			content, err := os.ReadFile(path + "/" + file.Name())
+			content, err := os.ReadFile(filepath.Join(path, file.Name()))
 			if err != nil {
-				return ""
+				return "", err
 			}
 
 			reg := regexp.MustCompile(`module (.*)`)
 
-			return reg.FindStringSubmatch(string(content))[1]
+			match := reg.FindStringSubmatch(string(content))
+			if len(match) < 2 { //nolint:gomnd
+				return "", fmt.Errorf("%w: can't find module name", errGetModule)
+			}
+
+			return match[1], nil
 		}
 	}
 
-	return ""
+	return "", fmt.Errorf("%w: can't find go.mod file", errGetModule)
 }
 
 func fillImport(path, logicPackage, currentModule string) error {
-	dir, err := os.ReadDir("./" + path)
+	dir, err := os.ReadDir(path)
 	if err != nil {
 		return err
 	}
 
 	for _, file := range dir {
+		filePath := filepath.Join(path, file.Name())
 		if file.Name()[0] == '.' {
 			continue
 		}
 
 		if file.IsDir() {
-			err := fillImport(path+"/"+file.Name(), logicPackage, currentModule)
+			err := fillImport(filePath, logicPackage, currentModule)
 			if err != nil {
 				return err
 			}
 			continue
 		}
 
-		content, err := os.ReadFile(path + "/" + file.Name())
+		content, err := os.ReadFile(filePath)
 		if err != nil {
-			return err
+			return fmt.Errorf("can't read file: %w", err)
 		}
 
 		reg := regexp.MustCompile(`\$\[ADAPTERKIT_GOMOD]`)
@@ -104,9 +128,9 @@ func fillImport(path, logicPackage, currentModule string) error {
 		reg = regexp.MustCompile(`\$\[ADAPTERKIT_LOGIC_PACKAGE]`)
 		content = reg.ReplaceAll(content, []byte(logicPackage))
 
-		err = os.WriteFile(path+"/"+file.Name(), content, 0o600)
+		err = os.WriteFile(filePath, content, 0o600) //nolint:gomnd
 		if err != nil {
-			return err
+			return fmt.Errorf("can't write in file: %w", err)
 		}
 	}
 
