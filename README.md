@@ -20,7 +20,6 @@
 
 ## Usage
 
-[embedmd]:# (.tmp/usage.txt console)
 ```console
 foo@bar:~$ adapterkit
             _                                                   _                      _        _
