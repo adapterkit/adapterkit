@@ -43,6 +43,7 @@ func swissknifeRun(args []string) error {
 
     return root.ParseAndRun(context.Background(), args)
 }
+
 func convHexa() *ffcli.Command {
     var input string
     convHexaFlagSet := flag.NewFlagSet("convHexa", flag.ExitOnError)
@@ -84,4 +85,3 @@ func convBase64() *ffcli.Command {
         },
     }
 }
-

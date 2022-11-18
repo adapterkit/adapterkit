@@ -8,16 +8,15 @@ import (
     "google.golang.org/grpc"
     "moul.io/adapterkit/pkg/lib"
 
-    {{$package}} "$[ADAPTERKIT_LOGIC_PACKAGE]"
+    {{$package}} "github.com/pmg-tools/adapterkit-module-swissknife"
 )
-
 {{define "notOnFirstIter"}}{{with $list := .}}{{with $i := index $list 0}}{{with $toPrint := index $list 1}}
     {{- if ne $i 0 -}} {{$toPrint}} {{- end -}}
 {{end}}{{end}}{{end}}{{end -}}
 
-{{- define "upperFormat" -}} 
+{{- define "upperFormat" -}}
     {{with $w := . -}}
-    {{$list := regexSplit "\\." $w -1 -}} 
+    {{$list := regexSplit "\\." $w -1 -}}
     {{$f := index $list 0 -}}
     {{range $i, $d := $list -}}
         {{if ne 0 $i -}} {{$f = cat $f "_" -}} {{$f = cat $f $d|title -}} {{$f = $f | replace " " ""}} {{- end}}
@@ -25,12 +24,12 @@ import (
     {{- $f | printf "%s"}}
 {{- end}}{{end}}
 
-{{- define "iterateOnFieldsName&Type"}}{{with $t := .}}  
+{{- define "iterateOnFieldsName&Type"}}{{with $t := .}}
     {{- range $i, $f := $t.Field -}}{{$f.Name -}}{{$var := $f | goTypeWithPackage}} {{template "upperFormat" $var}},
 {{- end}}{{end}}{{end}}
 
-{{- define "iterateOnFieldsToFill"}}{{with $t := .}}  
-    {{- range $i, $f := $t.Field -}}{{template "notOnFirstIter" $x := list $i ", " -}}  {{$f.Name | title}}: {{$f.Name}} 
+{{- define "iterateOnFieldsToFill"}}{{with $t := .}}
+    {{- range $i, $f := $t.Field -}}{{template "notOnFirstIter" $x := list $i ", " -}}  {{$f.Name | title}}: {{$f.Name}}
 {{- end}}{{end}}{{end}}
 
 {{- range $m := .Service.Method}}
@@ -51,7 +50,7 @@ func Svc{{$m.Name}}
 		log.Fatal(err)
 	}
     defer conn.Close()
-    
+
     client := {{$package}}.New{{$package | title}}SvcClient(conn)
     req := &{{$package}}.
     {{- with $t := $m.InputType | getMessageType $.File}}
@@ -61,12 +60,11 @@ func Svc{{$m.Name}}
     if err != nil {
 		return nil, err
 	}
-    
+
     return res, nil
 }
 {{- else}}
     panic("not implemented")
 }
 {{- end}}
-
-{{end}}
+{{end -}}
