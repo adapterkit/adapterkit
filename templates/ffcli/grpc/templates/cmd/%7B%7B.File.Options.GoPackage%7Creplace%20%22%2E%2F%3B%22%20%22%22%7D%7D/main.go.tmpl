@@ -5,9 +5,9 @@
     {{- if ne $i 0 -}} {{$toPrint}} {{- end -}}
 {{end}}{{end}}{{end}}{{end -}}
 
-{{- define "upperFormat" -}} 
-    {{with $w := . -}} 
-    {{$list := regexSplit "\\." $w -1 -}} 
+{{- define "upperFormat" -}}
+    {{with $w := . -}}
+    {{$list := regexSplit "\\." $w -1 -}}
     {{$f := index $list 0 -}}
     {{range $i, $d := $list -}}
         {{if ne 0 $i -}} {{$f = cat $f "_" -}} {{$f = cat $f $d|title -}} {{$f = $f | replace " " ""}} {{- end}}
@@ -15,9 +15,9 @@
     {{- $f | printf "%s"}}
 {{- end}}{{end}}
 
-{{- define "PascalUpperFormat" -}} 
-    {{with $w := . -}} 
-    {{$list := regexSplit "\\." $w -1 -}} 
+{{- define "PascalUpperFormat" -}}
+    {{with $w := . -}}
+    {{$list := regexSplit "\\." $w -1 -}}
     {{$f := index $list 0 -}}
     {{range $i, $d := $list -}}
         {{if ne 0 $i -}} {{$f = cat $f "_" -}} {{$f = cat $f $d|title -}} {{$f = $f | replace " " ""}} {{- end}}
@@ -25,18 +25,17 @@
     {{- $f | title | printf "%s"}}
 {{- end}}{{end}}
 
-
-{{- define "iterateOnFieldsName&Type1"}}{{with $t := .}}  
-    {{- range $i, $f := $t.Field -}}{{template "notOnFirstIter" $x := list $i "\n    " -}} var {{$f.Name -}} {{$var := $f | goTypeWithPackage}} {{template "upperFormat" $var}}  
+{{- define "iterateOnFieldsName&Type1"}}{{with $t := .}}
+    {{- range $i, $f := $t.Field -}}{{template "notOnFirstIter" $x := list $i "\n    " -}} var {{$f.Name -}} {{$var := $f | goTypeWithPackage}} {{template "upperFormat" $var}}
 {{- end}}{{end}}{{end -}}
 
-{{- define "iterateOnFieldsFfcliName&Type"}}{{with $slice := .}}{{with $t := index $slice 0}}{{with $flagSet := index $slice 1}}  
+{{- define "iterateOnFieldsFfcliName&Type"}}{{with $slice := .}}{{with $t := index $slice 0}}{{with $flagSet := index $slice 1}}
     {{- range $i, $f := $t.Field -}}{{template "notOnFirstIter" $x := list $i "\n    " -}}
-    {{- $flagSet}}FlagSet.{{$var := $f | goTypeWithPackage}}{{template "PascalUpperFormat" $var}}Var(&{{$f.Name}}, "{{$f.Name | title}}", {{goZeroValue $f}}, "")  
+    {{- $flagSet}}FlagSet.{{$var := $f | goTypeWithPackage}}{{template "PascalUpperFormat" $var}}Var(&{{$f.Name}}, "{{$f.Name | title}}", {{goZeroValue $f}}, "")
 {{- end}}{{end}}{{end}}{{end}}{{end -}}
 
-{{- define "iterateOnFieldsName"}}{{with $t := .}}  
-    {{- range $i, $f := $t.Field -}}{{template "notOnFirstIter" $x := list $i ", " -}} {{$f.Name -}}  
+{{- define "iterateOnFieldsName"}}{{with $t := .}}
+    {{- range $i, $f := $t.Field -}}{{template "notOnFirstIter" $x := list $i ", " -}} {{$f.Name -}}
 {{- end}}{{end}}{{end -}}
 
 package main
@@ -50,9 +49,9 @@ import (
     "os"
 
 	"google.golang.org/grpc"
-    "$[ADAPTERKIT_GOMOD]/pkg/{{$package}}_gen"
-    
-    {{$package}} "$[ADAPTERKIT_LOGIC_PACKAGE]"
+    "test/pkg/{{$package}}_gen"
+
+    {{$package}} "github.com/pmg-tools/adapterkit-module-swissknife"
     "github.com/peterbourgon/ff/v3"
     "github.com/peterbourgon/ff/v3/ffcli"
 )
@@ -88,11 +87,9 @@ func {{$package}}Run(args []string) error {
 
     return root.ParseAndRun(context.Background(), args)
 }
-
-
-{{- range $m := .Service.Method}}
+{{ range $m := .Service.Method}}
 {{- $p := $m.Name | lowerFirst}}
-{{- $t := $m.InputType | getMessageType $.File}} 
+{{- $t := $m.InputType | getMessageType $.File}}
 func {{$p}}() *ffcli.Command {
     {{template "iterateOnFieldsName&Type1" $t}}
     {{$p}}FlagSet := flag.NewFlagSet("{{$m.Name | lowerFirst}}", flag.ExitOnError)
@@ -100,7 +97,7 @@ func {{$p}}() *ffcli.Command {
     return &ffcli.Command{
         Name:       "{{$m.Name | lowerFirst}}",
         ShortUsage: "{{$package}} {{$m.Name | lowerFirst}} ${input}",
-        Options:    []ff.Option{ff.WithEnvVarNoPrefix()},   
+        Options:    []ff.Option{ff.WithEnvVarNoPrefix()},
         FlagSet:    {{$p}}FlagSet,
         Exec: func(_ context.Context, _ []string) error {
             result, err := {{template "PKG" $package}}.Svc{{$m.Name}}({{template "iterateOnFieldsName" $t}})
@@ -113,8 +110,7 @@ func {{$p}}() *ffcli.Command {
         },
     }
 }
-
-{{end}}
+{{ end }}
 func server() *ffcli.Command {
 	return &ffcli.Command{
 		Name:       "server",
