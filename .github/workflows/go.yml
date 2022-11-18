@@ -68,7 +68,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        golangci_lint: [v1.38]
+        golangci_lint: [v1.49]
     steps:
       - uses: actions/checkout@v3
       - name: golangci-lint
