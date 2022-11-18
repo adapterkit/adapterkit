@@ -2,57 +2,57 @@
 
 {{- define "PKG"}}{{.}}_gen{{end}}
 {{- define "notOnFirstIter"}}{{with $list := .}}{{with $i := index $list 0}}{{with $toPrint := index $list 1}}
-    {{- if ne $i 0 -}} {{$toPrint}} {{- end -}}
+	{{- if ne $i 0 -}} {{$toPrint}} {{- end -}}
 {{end}}{{end}}{{end}}{{end -}}
 
 {{- define "upperFormat" -}}
-    {{with $w := . -}}
-    {{$list := regexSplit "\\." $w -1 -}}
-    {{$f := index $list 0 -}}
-    {{range $i, $d := $list -}}
-        {{if ne 0 $i -}} {{$f = cat $f "_" -}} {{$f = cat $f $d|title -}} {{$f = $f | replace " " ""}} {{- end}}
-    {{- end}}
-    {{- $f | printf "%s"}}
+	{{with $w := . -}}
+	{{$list := regexSplit "\\." $w -1 -}}
+	{{$f := index $list 0 -}}
+	{{range $i, $d := $list -}}
+		{{if ne 0 $i -}} {{$f = cat $f "_" -}} {{$f = cat $f $d|title -}} {{$f = $f | replace " " ""}} {{- end}}
+	{{- end}}
+	{{- $f | printf "%s"}}
 {{- end}}{{end}}
 
 {{- define "PascalUpperFormat" -}}
-    {{with $w := . -}}
-    {{$list := regexSplit "\\." $w -1 -}}
-    {{$f := index $list 0 -}}
-    {{range $i, $d := $list -}}
-        {{if ne 0 $i -}} {{$f = cat $f "_" -}} {{$f = cat $f $d|title -}} {{$f = $f | replace " " ""}} {{- end}}
-    {{- end}}
-    {{- $f | title | printf "%s"}}
+	{{with $w := . -}}
+	{{$list := regexSplit "\\." $w -1 -}}
+	{{$f := index $list 0 -}}
+	{{range $i, $d := $list -}}
+		{{if ne 0 $i -}} {{$f = cat $f "_" -}} {{$f = cat $f $d|title -}} {{$f = $f | replace " " ""}} {{- end}}
+	{{- end}}
+	{{- $f | title | printf "%s"}}
 {{- end}}{{end}}
 
 
 {{- define "iterateOnFieldsName&Type1"}}{{with $t := .}}
-    {{- range $i, $f := $t.Field -}}{{template "notOnFirstIter" $x := list $i "\n    " -}} var {{$f.Name -}} {{$var := $f | goTypeWithPackage}} {{template "upperFormat" $var}}
+	{{- range $i, $f := $t.Field -}}{{template "notOnFirstIter" $x := list $i "\n	" -}} var {{$f.Name -}} {{$var := $f | goTypeWithPackage}} {{template "upperFormat" $var}}
 {{- end}}{{end}}{{end -}}
 
 {{- define "iterateOnFieldsFfcliName&Type"}}{{with $slice := .}}{{with $t := index $slice 0}}{{with $flagSet := index $slice 1}}
-    {{- range $i, $f := $t.Field -}}{{template "notOnFirstIter" $x := list $i "\n    " -}}
-    {{- $flagSet}}FlagSet.{{$var := $f | goTypeWithPackage}}{{template "PascalUpperFormat" $var}}Var(&{{$f.Name}}, "{{$f.Name | title}}", {{goZeroValue $f}}, "")
+	{{- range $i, $f := $t.Field -}}{{template "notOnFirstIter" $x := list $i "\n	" -}}
+	{{- $flagSet}}FlagSet.{{$var := $f | goTypeWithPackage}}{{template "PascalUpperFormat" $var}}Var(&{{$f.Name}}, "{{$f.Name | title}}", {{goZeroValue $f}}, "")
 {{- end}}{{end}}{{end}}{{end}}{{end -}}
 
 {{- define "iterateOnFieldsName"}}{{with $t := .}}
-    {{- range $i, $f := $t.Field -}} {{$f.Name -}},
+	{{- range $i, $f := $t.Field -}} {{$f.Name -}},
 {{- end}}{{end}}{{end -}}
 
 package main
 
 import (
-    "context"
-    "flag"
-    "fmt"
-    "log"
-    "os"
+	"context"
+	"flag"
+	"fmt"
+	"log"
+	"os"
 
-    "test/pkg/{{$package}}_gen"
+	"test/pkg/{{$package}}_gen"
 
-    "github.com/peterbourgon/ff/v3"
-    "github.com/peterbourgon/ff/v3/ffcli"
-    {{$package}} "github.com/pmg-tools/adapterkit-module-swissknife"
+	"github.com/peterbourgon/ff/v3"
+	"github.com/peterbourgon/ff/v3/ffcli"
+	{{$package}} "github.com/pmg-tools/adapterkit-module-swissknife"
 )
 
 func initSvc() {{$package}}.{{$package | title}}SvcServer {
@@ -60,52 +60,51 @@ func initSvc() {{$package}}.{{$package | title}}SvcServer {
 }
 
 func main() {
-    if err := {{$package}}Run(os.Args[1:]); err != nil {
-        log.Fatal(err)
-    }
-    return
+	if err := {{$package}}Run(os.Args[1:]); err != nil {
+		log.Fatal(err)
+	}
 }
 
 func {{$package}}Run(args []string) error {
-    rootFlagSet := flag.NewFlagSet("{{$package}}", flag.ExitOnError)
+	rootFlagSet := flag.NewFlagSet("{{$package}}", flag.ExitOnError)
 
-    root := &ffcli.Command{
-        FlagSet:    rootFlagSet,
-        ShortUsage: "{{$package}} [flags] <command> [args...]",
-        Options:    []ff.Option{ff.WithEnvVarNoPrefix()},
-        Subcommands: []*ffcli.Command{
+	root := &ffcli.Command{
+		FlagSet:    rootFlagSet,
+		ShortUsage: "{{$package}} [flags] <command> [args...]",
+		Options:    []ff.Option{ff.WithEnvVarNoPrefix()},
+		Subcommands: []*ffcli.Command{
 {{- range $m := .Service.Method}}
-            {{$m.Name | lowerFirst}}(),
+			{{$m.Name | lowerFirst}}(),
 {{- end}}
-        },
-        Exec: func(_ context.Context, _ []string) error {
-            return flag.ErrHelp
-        },
-    }
+		},
+		Exec: func(_ context.Context, _ []string) error {
+			return flag.ErrHelp
+		},
+	}
 
-    return root.ParseAndRun(context.Background(), args)
+	return root.ParseAndRun(context.Background(), args)
 }
 {{ range $m := .Service.Method}}
 {{- $p := $m.Name | lowerFirst}}
 {{- $t := $m.InputType | getMessageType $.File}}
 func {{$p}}() *ffcli.Command {
-    {{template "iterateOnFieldsName&Type1" $t}}
-    {{$p}}FlagSet := flag.NewFlagSet("{{$m.Name | lowerFirst}}", flag.ExitOnError)
-    {{template "iterateOnFieldsFfcliName&Type" $x := list $t $p}}
-    return &ffcli.Command{
-        Name:       "{{$m.Name | lowerFirst}}",
-        ShortUsage: "{{$package}} {{$m.Name | lowerFirst}} ${input}",
-        Options:    []ff.Option{ff.WithEnvVarNoPrefix()},
-        FlagSet:    {{$p}}FlagSet,
-        Exec: func(_ context.Context, _ []string) error {
-            result, err := {{template "PKG" $package}}.Svc{{$m.Name}}({{template "iterateOnFieldsName" $t}} initSvc())
-            if err != nil {
-                return err
-            }
+	{{template "iterateOnFieldsName&Type1" $t}}
+	{{$p}}FlagSet := flag.NewFlagSet("{{$m.Name | lowerFirst}}", flag.ExitOnError)
+	{{template "iterateOnFieldsFfcliName&Type" $x := list $t $p}}
+	return &ffcli.Command{
+		Name:       "{{$m.Name | lowerFirst}}",
+		ShortUsage: "{{$package}} {{$m.Name | lowerFirst}} ${input}",
+		Options:    []ff.Option{ff.WithEnvVarNoPrefix()},
+		FlagSet:    {{$p}}FlagSet,
+		Exec: func(_ context.Context, _ []string) error {
+			result, err := {{template "PKG" $package}}.Svc{{$m.Name}}({{template "iterateOnFieldsName" $t}} initSvc())
+			if err != nil {
+				return err
+			}
 
-            fmt.Println(result)
-            return nil
-        },
-    }
+			fmt.Println(result)
+			return nil
+		},
+	}
 }
 {{end -}}
