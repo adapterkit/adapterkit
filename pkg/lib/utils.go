@@ -10,7 +10,7 @@ import (
 )
 
 func Dialer[T interface{}](t T, reg func(grpc.ServiceRegistrar, T)) func(context.Context, string) (net.Conn, error) {
-	listener := bufconn.Listen(1024 * 1024) // nolint:gomnd
+	listener := bufconn.Listen(1024 * 1024) //nolint:gomnd
 	server := grpc.NewServer()
 
 	reg(server, t)
