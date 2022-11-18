@@ -1,6 +1,6 @@
 .PHONY: adapterkit
 adapterkit:
-	protoc -I. --gotemplate_out=template_dir=templates,debug=true:. proto/swissknife.proto
+	adapterkit generate -mod github.com/pmg-tools/adapterkit-module-swissknife -tpl templates/ proto/swissknife.proto
 
 
 .PHONY: clean
