@@ -22,7 +22,6 @@ func main() {
 	if err := swissknifeRun(os.Args[1:]); err != nil {
 		log.Fatal(err)
 	}
-	return
 }
 
 func swissknifeRun(args []string) error {
