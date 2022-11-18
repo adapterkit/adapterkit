@@ -1,16 +1,13 @@
 {{- $package := $.File.Options.GoPackage | replace "./;" "" -}}
-package {{$package}}_gen
+package {{$package}}_gen //nolint
 
 import (
-    "context"
-    "log"
+	"context"
+	"log"
 
-    "google.golang.org/grpc"
+	{{$package}} "github.com/pmg-tools/adapterkit-module-swissknife"
+	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
-
-    _ "moul.io/adapterkit/pkg/lib"
-
-    {{$package}} "github.com/pmg-tools/adapterkit-module-swissknife"
 )
 {{define "notOnFirstIter"}}{{with $list := .}}{{with $i := index $list 0}}{{with $toPrint := index $list 1}}
     {{- if ne $i 0 -}} {{$toPrint}} {{- end -}}
@@ -37,34 +34,34 @@ import (
 {{- range $m := .Service.Method}}
 func Svc{{$m.Name}}
 {{- with $t := $m.InputType | getMessageType $.File -}}
-    ( {{- template "iterateOnFieldsName&Type" $t -}} )
+	( {{- template "iterateOnFieldsName&Type" $t -}} )
 {{- end}}
 {{- with $t := $m.OutputType | getMessageType $.File -}}
-    {{""}} ({{"*"}}{{$package}}{{"." -}}{{$t.Name}}, error)
+	{{""}} ({{"*"}}{{$package}}{{"." -}}{{$t.Name}}, error)
 {{- end}} {
 {{- if and (not .ServerStreaming) (not .ClientStreaming)}}
 	ctx := context.Background()
 
 	conn, err := grpc.DialContext(ctx, {{/* MUST BE REPLACED BY ARG GEST */}}"127.0.0.1:9314", grpc.WithTransportCredentials(insecure.NewCredentials()))
-    if err != nil {
+	if err != nil {
 		log.Fatal(err)
 	}
-    defer conn.Close()
+	defer conn.Close()
 
-    client := {{$package}}.New{{$package | title}}SvcClient(conn)
-    req := &{{$package}}.
-    {{- with $t := $m.InputType | getMessageType $.File}}
-        {{- $t.Name}} {{- "{" -}} {{template "iterateOnFieldsToFill" $t -}} }
+	client := {{$package}}.New{{$package | title}}SvcClient(conn)
+	req := &{{$package}}.
+	{{- with $t := $m.InputType | getMessageType $.File}}
+		{{- $t.Name}} {{- "{" -}} {{template "iterateOnFieldsToFill" $t -}} }
     {{- end}}
-    res, err := client.{{$m.Name}}(ctx, req)
-    if err != nil {
-        return nil, err
-    }
+	res, err := client.{{$m.Name}}(ctx, req)
+	if err != nil {
+		return nil, err
+	}
 
-    return res, nil
+	return res, nil
 }
 {{- else}}
-    panic("not implemented")
+	panic("not implemented")
 }
 {{- end}}
 {{end -}}
