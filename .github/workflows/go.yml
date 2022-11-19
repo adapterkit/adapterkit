@@ -42,7 +42,7 @@ jobs:
     if: needs.repoman.outputs.has-go-binary == 'true'
     strategy:
       matrix:
-        golang: [1.18.x]
+        golang: [1.19.x]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -68,7 +68,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        golangci_lint: [v1.38]
+        golangci_lint: [v1.49]
     steps:
       - uses: actions/checkout@v3
       - name: golangci-lint
@@ -84,7 +84,7 @@ jobs:
     runs-on: windows-latest
     strategy:
       matrix:
-        golang: [1.18.x]
+        golang: [1.19.x]
     steps:
       - uses: actions/checkout@v3
       - name: Install Go
@@ -99,7 +99,7 @@ jobs:
     runs-on: macos-latest
     strategy:
       matrix:
-        golang: [1.16.x]
+        golang: [1.19.x]
     env:
       OS: macos-latest
       GOLANG: ${{ matrix.golang }}
@@ -142,8 +142,9 @@ jobs:
           #- 1.14.x
           #- 1.15.x
           #- 1.16.x
-          - 1.17.x
-          - 1.18.x
+          #- 1.17.x
+          #- 1.18.x
+          - 1.19.x
     env:
       OS: ubuntu-latest
       GOLANG: ${{ matrix.golang }}
