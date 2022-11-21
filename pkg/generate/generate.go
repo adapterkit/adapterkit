@@ -74,6 +74,12 @@ func getTemplateDirName(path string) (string, error) {
 	if len(path) == 0 {
 		return "", fmt.Errorf("empty path") //nolint:goerr113
 	}
+
+	// remove useless slash at the end of path
+	if path[len(path)-1] == '/' {
+		path = path[:len(path)-1]
+	}
+
 	tabPath := strings.Split(path, "/")
 	templateDirName := tabPath[len(tabPath)-1]
 

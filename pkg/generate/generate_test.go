@@ -25,6 +25,11 @@ func TestGetTemplateDirName(t *testing.T) {
 			want: "",
 			err:  true,
 		},
+		{
+			path: "/tmp/template/",
+			want: "template",
+			err:  false,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.path, func(t *testing.T) {
