@@ -10,6 +10,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"regexp"
+	"strings"
 
 	"moul.io/climan"
 	"moul.io/u"
@@ -54,7 +55,12 @@ func Cmd() *climan.Command {
 				return err
 			}
 
-			err = fillImport(outputDir, moduleRepo, currentModule)
+			templateDirName, err := getTemplateDirName(templateDir)
+			if err != nil {
+				return err
+			}
+
+			err = fillImport(outputDir, moduleRepo, currentModule, templateDirName)
 			if err != nil {
 				return err
 			}
@@ -62,6 +68,16 @@ func Cmd() *climan.Command {
 			return nil
 		},
 	}
+}
+
+func getTemplateDirName(path string) (string, error) {
+	if len(path) == 0 {
+		return "", fmt.Errorf("empty path")
+	}
+	tabPath := strings.Split(path, "/")
+	templateDirName := tabPath[len(tabPath)-1]
+
+	return templateDirName, nil
 }
 
 var errGetModule = errors.New("can't get module")
@@ -97,7 +113,7 @@ func getModule(path string) (string, error) {
 	return "", fmt.Errorf("%w: can't find go.mod file", errGetModule)
 }
 
-func fillImport(path, logicPackage, currentModule string) error {
+func fillImport(path, logicPackage, currentModule, templateDirName string) error {
 	dir, err := os.ReadDir(path)
 	if err != nil {
 		return err
@@ -105,12 +121,12 @@ func fillImport(path, logicPackage, currentModule string) error {
 
 	for _, file := range dir {
 		filePath := filepath.Join(path, file.Name())
-		if file.Name()[0] == '.' {
+		if file.Name()[0] == '.' || file.Name() == templateDirName {
 			continue
 		}
 
 		if file.IsDir() {
-			err := fillImport(filePath, logicPackage, currentModule)
+			err := fillImport(filePath, logicPackage, currentModule, templateDirName)
 			if err != nil {
 				return err
 			}
