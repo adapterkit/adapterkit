@@ -72,7 +72,7 @@ func Cmd() *climan.Command {
 
 func getTemplateDirName(path string) (string, error) {
 	if len(path) == 0 {
-		return "", fmt.Errorf("empty path")
+		return "", fmt.Errorf("empty path") //nolint:goerr113
 	}
 	tabPath := strings.Split(path, "/")
 	templateDirName := tabPath[len(tabPath)-1]
