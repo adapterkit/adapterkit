@@ -48,13 +48,13 @@ import (
 	"net"
 	"os"
 
-	"test/pkg/{{$package}}_gen"
+	"$[ADAPTERKIT_GOMOD]/pkg/{{$package}}_gen"
 
 	"google.golang.org/grpc"
 
 	"github.com/peterbourgon/ff/v3"
 	"github.com/peterbourgon/ff/v3/ffcli"
-	{{$package}} "github.com/pmg-tools/adapterkit-module-swissknife"
+	{{$package}} "$[ADAPTERKIT_LOGIC_PACKAGE]"
 )
 
 func initSvc() {{$package}}.{{$package | title}}SvcServer {

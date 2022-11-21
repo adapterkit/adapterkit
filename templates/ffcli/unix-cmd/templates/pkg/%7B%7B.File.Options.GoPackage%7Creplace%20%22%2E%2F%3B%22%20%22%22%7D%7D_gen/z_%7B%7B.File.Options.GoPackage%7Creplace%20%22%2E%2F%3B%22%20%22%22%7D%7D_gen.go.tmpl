@@ -9,7 +9,7 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 	"moul.io/adapterkit/pkg/lib"
 
-	{{$package}} "github.com/pmg-tools/adapterkit-module-swissknife"
+	{{$package}} "$[ADAPTERKIT_LOGIC_PACKAGE]"
 )
 {{define "notOnFirstIter"}}{{with $list := .}}{{with $i := index $list 0}}{{with $toPrint := index $list 1}}
 	{{- if ne $i 0 -}} {{$toPrint}} {{- end -}}
