@@ -81,6 +81,22 @@ jobs:
           working-directory: .
           skip-dirs:
             - templates
+  check-templates-integrity:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        golang: [1.19.x]
+        templates_dir: [templates/ffcli/unix-cmd, templates/ffcli/grpc]
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install Go
+        uses: actions/setup-go@v3
+          with:
+            go-version: ${{ matrix.golang }}
+    - run: |
+        cd ${{matrix.templates_dir}}
+        go build -n cmd/**/*.go
+
   tests-on-windows:
     needs: golangci-lint # run after golangci-lint action to not produce duplicated errors
     runs-on: windows-latest
