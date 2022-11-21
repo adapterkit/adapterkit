@@ -5,6 +5,8 @@ run:
     - "testing.go"
     - ".*\\.pb\\.go"
     - ".*\\.gen\\.go"
+  skip-dirs:
+    - templates
 
 linters-settings:
   golint:

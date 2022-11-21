@@ -1,0 +1,67 @@
+{{- $package := $.File.Options.GoPackage | replace "./;" "" -}}
+package {{$package}}_gen //nolint
+
+import (
+	"context"
+	"log"
+
+	{{$package}} "$[ADAPTERKIT_LOGIC_PACKAGE]"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
+)
+{{define "notOnFirstIter"}}{{with $list := .}}{{with $i := index $list 0}}{{with $toPrint := index $list 1}}
+    {{- if ne $i 0 -}} {{$toPrint}} {{- end -}}
+{{end}}{{end}}{{end}}{{end -}}
+
+{{- define "upperFormat" -}}
+    {{with $w := . -}}
+    {{$list := regexSplit "\\." $w -1 -}}
+    {{$f := index $list 0 -}}
+    {{range $i, $d := $list -}}
+        {{if ne 0 $i -}} {{$f = cat $f "_" -}} {{$f = cat $f $d|title -}} {{$f = $f | replace " " ""}} {{- end}}
+    {{- end}}
+    {{- $f | printf "%s"}}
+{{- end}}{{end}}
+
+{{- define "iterateOnFieldsName&Type"}}{{with $t := .}}
+    {{- range $i, $f := $t.Field -}}{{template "notOnFirstIter" $x := list $i ", " -}} {{$f.Name -}}{{$var := $f | goTypeWithPackage}} {{template "upperFormat" $var}}
+{{- end}}{{end}}{{end}}
+
+{{- define "iterateOnFieldsToFill"}}{{with $t := .}}
+    {{- range $i, $f := $t.Field -}}{{template "notOnFirstIter" $x := list $i ", " -}}  {{$f.Name | title}}: {{$f.Name}}
+{{- end}}{{end}}{{end}}
+
+{{- range $m := .Service.Method}}
+func Svc{{$m.Name}}
+{{- with $t := $m.InputType | getMessageType $.File -}}
+	( {{- template "iterateOnFieldsName&Type" $t -}} )
+{{- end}}
+{{- with $t := $m.OutputType | getMessageType $.File -}}
+	{{""}} ({{"*"}}{{$package}}{{"." -}}{{$t.Name}}, error)
+{{- end}} {
+{{- if and (not .ServerStreaming) (not .ClientStreaming)}}
+	ctx := context.Background()
+
+	conn, err := grpc.DialContext(ctx, {{/* MUST BE REPLACED BY ARG GEST */}}"127.0.0.1:9314", grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer conn.Close()
+
+	client := {{$package}}.New{{$package | title}}SvcClient(conn)
+	req := &{{$package}}.
+	{{- with $t := $m.InputType | getMessageType $.File}}
+		{{- $t.Name}} {{- "{" -}} {{template "iterateOnFieldsToFill" $t -}} }
+    {{- end}}
+	res, err := client.{{$m.Name}}(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+
+	return res, nil
+}
+{{- else}}
+	panic("not implemented")
+}
+{{- end}}
+{{end -}}
