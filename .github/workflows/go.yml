@@ -94,6 +94,7 @@ jobs:
       - name: check compilation
         run: |
           cd ${{matrix.templates_dir}}
+          go mod download
           go build -n cmd/**/*.go
   tests-on-windows:
     needs: golangci-lint # run after golangci-lint action to not produce duplicated errors
