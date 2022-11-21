@@ -84,7 +84,7 @@ jobs:
     strategy:
       matrix:
         golang: [1.19.x]
-        templates_dir: [templates/ffcli/unix-cmd, templates/ffcli/grpc]
+        templates_dir: []
     steps:
       - uses: actions/checkout@v3
       - name: Install Go
