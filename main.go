@@ -11,6 +11,7 @@ import (
 	"github.com/peterbourgon/ff/v3"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
+	"moul.io/adapterkit/pkg/generate"
 	"moul.io/climan"
 	"moul.io/motd"
 	"moul.io/srand"
@@ -41,7 +42,10 @@ func run(args []string) error {
 		FlagSetBuilder: func(fs *flag.FlagSet) { fs.BoolVar(&opts.Debug, "debug", opts.Debug, "debug mode") },
 		Exec:           doRoot,
 		FFOptions:      []ff.Option{ff.WithEnvVarPrefix("adapterkit")},
-		// Subcommands:    []*climan.Command{},
+		Subcommands: []*climan.Command{
+			// subcommands
+			generate.Cmd(),
+		},
 		// LongHelp: "",
 	}
 	if err := root.Parse(args); err != nil {
