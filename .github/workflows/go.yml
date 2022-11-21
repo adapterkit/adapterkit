@@ -79,8 +79,6 @@ jobs:
           args: --timeout=2m
           only-new-issues: false
           working-directory: .
-          skip-dirs:
-            - templates
   check-templates-integrity:
     runs-on: ubuntu-latest
     strategy:
