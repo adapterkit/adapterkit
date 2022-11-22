@@ -84,5 +84,5 @@ google.golang.org/protobuf v1.28.1/go.mod h1:HV8QOd/L58Z+nl8r43ehVNZIU/HEI6OcFqw
 gopkg.in/yaml.v3 v3.0.1 h1:fxVm/GzAzEWqLHuvctI91KS9hhNmmWOoWu0XTYJS7CA=
 honnef.co/go/tools v0.0.0-20190102054323-c2f93a96b099/go.mod h1:rf3lG4BRIbNafJWhAfAdb/ePZxsR/4RtNHQocxwk9r4=
 honnef.co/go/tools v0.0.0-20190523083050-ea95bdfd59fc/go.mod h1:rf3lG4BRIbNafJWhAfAdb/ePZxsR/4RtNHQocxwk9r4=
-moul.io/adapterkit v1.0.2 h1:WRE/z1tbsbRpNJRsWL496M9xrZUo1+Bpszz71aGhdgc=
-moul.io/adapterkit v1.0.2/go.mod h1:6RD0oYe7SBkC+COGoBWjEOLPP0htuFzq2PGe8id4ELE=
+moul.io/adapterkit v1.3.0 h1:nW/mZNM3uzAykKPgTP31/wUZJACfBhYFrBYQyI/8Ptg=
+moul.io/adapterkit v1.3.0/go.mod h1:oeoQShTAtpplN0Gu9D1RRjElptj6DIkyg+cahMonU6E=

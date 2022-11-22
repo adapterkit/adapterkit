@@ -6,7 +6,7 @@ require (
 	github.com/peterbourgon/ff/v3 v3.3.0
 	github.com/pmg-tools/adapterkit-module-swissknife v0.0.0-20221108131630-cedbc69f5d28
 	google.golang.org/grpc v1.51.0
-	moul.io/adapterkit v1.0.2
+	moul.io/adapterkit v1.3.0
 )
 
 require (
