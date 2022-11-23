@@ -79,12 +79,24 @@ jobs:
           args: --timeout=2m
           only-new-issues: false
           working-directory: .
+  build-matrix:
+    name: check templates integrity matrix builder
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Generate runner matrix (optimized)
+        id: set-matrix
+        run: .github/workflows/utils/getModules.sh
   check-templates-integrity:
+    needs: build-matrix
     runs-on: ubuntu-latest
     strategy:
       matrix:
         golang: [1.19.x]
-        templates_dir: []
+        templates_dir: [${{ fromJson(needs.build-matrix.outputs.matrix) }}]
     steps:
       - uses: actions/checkout@v3
       - name: Install Go
