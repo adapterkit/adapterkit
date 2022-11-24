@@ -89,9 +89,7 @@ jobs:
         uses: actions/checkout@v3
       - name: Generate runner matrix (optimized)
         id: set-matrix
-        run: |
-          node .github/workflows/utils/getModules.js
-          cat "$GITHUB_OUTPUT"
+        run: node .github/workflows/utils/getModules.js
   check-templates-integrity:
     needs: build-matrix
     runs-on: ubuntu-latest
