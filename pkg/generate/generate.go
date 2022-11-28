@@ -5,7 +5,6 @@ import (
 	"errors"
 	"flag"
 	"fmt"
-	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -25,7 +24,7 @@ func Cmd() *climan.Command {
 	return &climan.Command{
 		Name:       "generate",
 		ShortHelp:  "Generate code",
-		ShortUsage: "adapterkit generate [global flags] [flags] [args]",
+		ShortUsage: "adapterkit generate [flags] [path to proto]",
 		FlagSetBuilder: func(fs *flag.FlagSet) {
 			fs.StringVar(&moduleRepo, "mod", "", "github repo where the module is located")
 			fs.StringVar(&outputDir, "out", ".", "output directory")
@@ -47,7 +46,7 @@ func Cmd() *climan.Command {
 			cmd.Stderr = os.Stderr
 			err := cmd.Run()
 			if err != nil {
-				log.Println("error: ", err)
+				return err
 			}
 
 			currentModule, err := getModule(outputDir)
