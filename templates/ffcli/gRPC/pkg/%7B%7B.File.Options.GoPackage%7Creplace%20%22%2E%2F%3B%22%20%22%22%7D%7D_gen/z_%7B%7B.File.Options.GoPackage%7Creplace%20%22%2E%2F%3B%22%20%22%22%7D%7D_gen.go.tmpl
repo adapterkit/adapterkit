@@ -28,10 +28,11 @@ import (
 {{- end}}{{end}}{{end}}
 
 {{- define "iterateOnFieldsToFill"}}{{with $t := .}}
-    {{- range $i, $f := $t.Field -}}{{template "notOnFirstIter" $x := list $i ", " -}}  {{$f.Name | title}}: {{$f.Name}}
+    {{- range $i, $f := $t.Field -}}{{template "notOnFirstIter" $x := list $i ", " -}}  {{$f.Name | camelCase}}: {{$f.Name}}
 {{- end}}{{end}}{{end}}
 
 {{- range $m := .Service.Method}}
+{{- if and (not .ServerStreaming) (not .ClientStreaming)}}
 func Svc{{$m.Name}}
 {{- with $t := $m.InputType | getMessageType $.File -}}
 	( {{- template "iterateOnFieldsName&Type" $t -}} )
@@ -39,7 +40,6 @@ func Svc{{$m.Name}}
 {{- with $t := $m.OutputType | getMessageType $.File -}}
 	{{""}} ({{"*"}}{{$package}}{{"." -}}{{$t.Name}}, error)
 {{- end}} {
-{{- if and (not .ServerStreaming) (not .ClientStreaming)}}
 	ctx := context.Background()
 
 	conn, err := grpc.DialContext(ctx, {{/* MUST BE REPLACED BY ARG GEST */}}"127.0.0.1:9314", grpc.WithTransportCredentials(insecure.NewCredentials()))
@@ -59,6 +59,52 @@ func Svc{{$m.Name}}
 	}
 
 	return res, nil
+}
+{{- else if and $m.ServerStreaming (not $m.ClientStreaming)}}
+func Svc{{$m.Name}}
+{{- with $t := $m.InputType | getMessageType $.File -}}
+ ( {{- template "iterateOnFieldsName&Type" $t}})
+{{- end}}
+{{- with $t := $m.OutputType | getMessageType $.File -}}
+ {{""}} ({{"chan *"}}{{$package}}{{"." -}}{{$t.Name}}, error)
+{{- end}} {
+  ctx := context.Background()
+
+  conn, err := grpc.DialContext(ctx, {{/* MUST BE REPLACED BY ARG GEST */}}"127.0.0.1:9314", grpc.WithTransportCredentials(insecure.NewCredentials()))
+  if err != nil {
+    log.Fatal(err)
+  }
+  client := {{$package}}.New{{$package | title}}SvcClient(conn)
+  chann := make
+  {{- with $t := $m.OutputType | getMessageType $.File -}}
+  	{{""}} ({{"chan *"}}{{$package}}{{"." -}}{{$t.Name}}, {{"1000"}})
+  {{- end}}
+
+  req := &{{$package}}.
+  {{- with $t := $m.InputType | getMessageType $.File}}
+    {{- $t.Name}} {{- "{" -}} {{template "iterateOnFieldsToFill" $t -}} }
+  {{- end}}
+  c, err := client.{{$m.Name}}(ctx, req)
+  if err != nil {
+    return nil, err
+  }
+
+  go func() {
+    for {
+  	  res, err := c.Recv()
+  	  if err == io.EOF {
+  		  conn.Close()
+  		  close(chann)
+  		  break
+  	  }
+  	  if err != nil {
+  		  return
+  	  }
+  	  chann <- res
+    }
+  }()
+
+  return chann, nil
 }
 {{- else}}
 	panic("not implemented")

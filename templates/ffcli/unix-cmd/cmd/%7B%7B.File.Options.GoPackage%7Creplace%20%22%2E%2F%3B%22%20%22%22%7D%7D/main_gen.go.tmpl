@@ -97,7 +97,25 @@ func {{$p}}() *ffcli.Command {
 		Options:    []ff.Option{ff.WithEnvVarNoPrefix()},
 		FlagSet:    {{$p}}FlagSet,
 		Exec: func(_ context.Context, _ []string) error {
+		{{- if and $m.ServerStreaming (not $m.ClientStreaming)}}
 			result, err := {{template "PKG" $package}}.Svc{{$m.Name}}({{template "iterateOnFieldsName" $t}} initSvc())
+			if err != nil {
+				return err
+			}
+
+      for {
+				res, ok := <-result
+				if !ok {
+					break
+				}
+
+				fmt.Println(res)
+			}
+
+			return nil
+		},
+		{{ else }}
+      result, err := {{template "PKG" $package}}.Svc{{$m.Name}}({{template "iterateOnFieldsName" $t}} initSvc())
 			if err != nil {
 				return err
 			}
@@ -105,6 +123,7 @@ func {{$p}}() *ffcli.Command {
 			fmt.Println(result)
 			return nil
 		},
+    {{- end }}
 	}
 }
 {{end -}}
