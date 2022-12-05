@@ -32,7 +32,7 @@ import (
 {{- end}}{{end}}{{end}}
 
 {{- define "iterateOnFieldsToFill"}}{{with $t := .}}
-    {{- range $i, $f := $t.Field -}}{{template "notOnFirstIter" $x := list $i ", " -}}  {{$f.Name | camelCase}}: {{$f.Name}}
+    {{- range $i, $f := $t.Field -}}{{template "notOnFirstIter" $x := list $i ", " -}}  {{$f.Name | snakeCase | camelCase}}: {{$f.Name}}
 {{- end}}{{end}}{{end}}
 
 {{- range $m := .Service.Method}}
