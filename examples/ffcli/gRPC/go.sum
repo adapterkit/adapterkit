@@ -1,9 +1,5 @@
 cloud.google.com/go v0.26.0/go.mod h1:aQUYkXzVsufM+DwF1aE+0xfcU+56JwCaLick0ClmMTw=
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
-github.com/Doozers/adapterkit-module-tictac v0.0.0-20221205140708-4e05b316a2cb h1:CaOaK+Ww60DlHQjomgcWumchjHEZUJZLWhEKjurn8AA=
-github.com/Doozers/adapterkit-module-tictac v0.0.0-20221205140708-4e05b316a2cb/go.mod h1:u6p/D1Ry2xNnHQ5nqokdmrXm/A01ISZJ4OopFJGP14E=
-github.com/Doozers/adapterkit-module-tictac v0.0.0-20221205141246-eea251e13159 h1:ppY5yH4zqbLgSFNFsSwzJIEBmVjYZa/9Mv2qtP7u8mc=
-github.com/Doozers/adapterkit-module-tictac v0.0.0-20221205141246-eea251e13159/go.mod h1:u6p/D1Ry2xNnHQ5nqokdmrXm/A01ISZJ4OopFJGP14E=
 github.com/Doozers/adapterkit-module-tictac v0.0.0-20221205141917-c7e29e0b9310 h1:w4rZB59daiQQO7iKBulr3J90xHcUy76ZbR64LDcMZ9E=
 github.com/Doozers/adapterkit-module-tictac v0.0.0-20221205141917-c7e29e0b9310/go.mod h1:u6p/D1Ry2xNnHQ5nqokdmrXm/A01ISZJ4OopFJGP14E=
 github.com/census-instrumentation/opencensus-proto v0.2.1/go.mod h1:f6KPmirojxKA12rnyqOA5BBL4O983OfeGPqjHWSTneU=
