@@ -106,7 +106,7 @@ jobs:
       - name: check compilation
         run: |
           cd ${{matrix.template_dir}}
-          go build -n cmd/**/*.go
+          go build -n -o . ./...
   tests-on-windows:
     needs: golangci-lint # run after golangci-lint action to not produce duplicated errors
     runs-on: windows-latest
