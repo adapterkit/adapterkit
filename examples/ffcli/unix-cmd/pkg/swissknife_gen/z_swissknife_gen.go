@@ -2,8 +2,6 @@ package swissknife_gen //nolint
 
 import (
 	"context"
-	"log"
-
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -19,7 +17,7 @@ func SvcConvHexa(input string, svc swissknife.SwissknifeSvcServer) (*swissknife.
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 		grpc.WithContextDialer(lib.Dialer(svc, swissknife.RegisterSwissknifeSvcServer)))
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 	defer conn.Close()
 
@@ -40,7 +38,7 @@ func SvcConvBase64(input string, svc swissknife.SwissknifeSvcServer) (*swissknif
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 		grpc.WithContextDialer(lib.Dialer(svc, swissknife.RegisterSwissknifeSvcServer)))
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 	defer conn.Close()
 

@@ -1,0 +1,17 @@
+syntax = "proto3";
+option go_package = "./;tictac";
+
+service TictacSvc {
+    rpc Countdown(CountdownReq) returns (stream CountdownRes) {};
+}
+
+
+message CountdownReq {
+    int64 count = 1;
+    string msg = 2;
+};
+
+message CountdownRes {
+    string msg = 1;
+};
+

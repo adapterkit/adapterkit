@@ -5,12 +5,9 @@ import (
 	"flag"
 	"fmt"
 	"log"
-	"net"
 	"os"
 
 	"test/pkg/tictac_gen"
-
-	"google.golang.org/grpc"
 
 	tictac "github.com/Doozers/adapterkit-module-tictac"
 	"github.com/peterbourgon/ff/v3"
@@ -18,7 +15,7 @@ import (
 )
 
 func initSvc() tictac.TictacSvcServer {
-	return tictac.New() // you should need to modify it depending on your service
+	return tictac.New()
 }
 
 func main() {
@@ -36,7 +33,6 @@ func tictacRun(args []string) error {
 		Options:    []ff.Option{ff.WithEnvVarNoPrefix()},
 		Subcommands: []*ffcli.Command{
 			countdown(),
-			server(),
 		},
 		Exec: func(_ context.Context, _ []string) error {
 			return flag.ErrHelp
@@ -66,32 +62,12 @@ func countdown() *ffcli.Command {
 				fmt.Println(res)
 				return nil
 			}
-			err := tictac_gen.SvcCountdown(count, msg, callback)
+			err := tictac_gen.SvcCountdown(count, msg, initSvc(), callback)
 			if err != nil {
 				return err
 			}
 
 			return nil
-		},
-	}
-}
-
-func server() *ffcli.Command {
-	return &ffcli.Command{
-		Name:       "server",
-		ShortUsage: "tictac start",
-		Options:    []ff.Option{ff.WithEnvVarNoPrefix()},
-		Exec: func(_ context.Context, _ []string) error {
-			lis, err := net.Listen("tcp", "127.0.0.1:9314")
-			if err != nil {
-				return err
-			}
-			grpcServer := grpc.NewServer()
-
-			tictac.RegisterTictacSvcServer(grpcServer, initSvc())
-
-			fmt.Println("starting demo-mod_gen server on port 9314:")
-			return grpcServer.Serve(lis)
 		},
 	}
 }
