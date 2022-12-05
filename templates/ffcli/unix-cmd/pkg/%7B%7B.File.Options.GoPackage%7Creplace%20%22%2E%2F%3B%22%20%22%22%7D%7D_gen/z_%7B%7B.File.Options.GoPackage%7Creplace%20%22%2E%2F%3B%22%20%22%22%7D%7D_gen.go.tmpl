@@ -5,7 +5,7 @@ import (
 	"context"
 {{- range $m := .Service.Method}}
 {{- if and .ServerStreaming (not .ClientStreaming)}}
-  "io"
+	"io"
   {{break}}
 {{end}}{{end}}
 
