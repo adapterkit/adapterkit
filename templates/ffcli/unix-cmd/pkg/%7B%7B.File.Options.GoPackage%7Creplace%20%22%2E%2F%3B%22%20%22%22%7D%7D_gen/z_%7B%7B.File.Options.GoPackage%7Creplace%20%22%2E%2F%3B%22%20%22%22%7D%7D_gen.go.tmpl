@@ -3,7 +3,10 @@ package {{$package}}_gen //nolint
 
 import (
 	"context"
-	"io"
+{{- if and .ServerStreaming (not .ClientStreaming)}}
+  "io"
+  {{break}}
+{{end}}{{end}}
 	"log"
 
 

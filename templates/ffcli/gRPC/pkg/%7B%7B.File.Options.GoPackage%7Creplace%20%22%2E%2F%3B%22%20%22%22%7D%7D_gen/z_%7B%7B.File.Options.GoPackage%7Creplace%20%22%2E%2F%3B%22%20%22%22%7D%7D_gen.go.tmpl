@@ -3,6 +3,11 @@ package {{$package}}_gen //nolint
 
 import (
 	"context"
+{{- range $m := .Service.Method}}
+{{- if and .ServerStreaming (not .ClientStreaming)}}
+  "io"
+  {{break}}
+{{end}}{{end}}
 	"log"
 
 	{{$package}} "$[ADAPTERKIT_LOGIC_PACKAGE]"
