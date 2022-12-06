@@ -8,6 +8,8 @@ import (
 	"math/rand"
 	"os"
 
+	"github.com/adapterkit/adapterkit/pkg/generate"
+	"github.com/peterbourgon/ff/v3"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"moul.io/climan"
@@ -15,9 +17,6 @@ import (
 	"moul.io/srand"
 	"moul.io/u"
 	"moul.io/zapconfig"
-
-	"github.com/adapterkit/adapterkit/pkg/generate"
-	"github.com/peterbourgon/ff/v3"
 )
 
 func main() {
