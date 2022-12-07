@@ -3,12 +3,11 @@ package {{$package}}_gen //nolint
 
 import (
 	"context"
+{{- range $m := .Service.Method}}
 {{- if and .ServerStreaming (not .ClientStreaming)}}
   "io"
   {{break}}
 {{end}}{{end}}
-	"log"
-
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -54,7 +53,7 @@ func Svc{{$m.Name}}
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 		grpc.WithContextDialer(lib.Dialer(svc, {{$package}}.Register{{$package | title}}SvcServer)))
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 	defer conn.Close()
 
@@ -73,10 +72,10 @@ func Svc{{$m.Name}}
 {{- else if and $m.ServerStreaming (not $m.ClientStreaming)}}
 func Svc{{$m.Name}}
 {{- with $t := $m.InputType | getMessageType $.File -}}
-	( {{- template "iterateOnFieldsName&Type" $t}} svc {{$package}}.{{$package | title}}SvcServer)
+	( {{- template "iterateOnFieldsName&Type" $t}} svc {{$package}}.{{$package | title}}SvcServer
 {{- end}}
 {{- with $t := $m.OutputType | getMessageType $.File -}}
-	{{""}} ({{"chan *"}}{{$package}}{{"." -}}{{$t.Name}}, error)
+ {{""}} ,{{"callback func (*"}}{{$package}}{{"." -}}{{$t.Name}}, error) error) error
 {{- end}} {
   ctx := context.Background()
 
@@ -84,40 +83,33 @@ func Svc{{$m.Name}}
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 		grpc.WithContextDialer(lib.Dialer(svc, {{$package}}.Register{{$package | title}}SvcServer)))
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
+	defer conn.Close()
 
 	client := {{$package}}.New{{$package | title}}SvcClient(conn)
-  chann := make
-{{- with $t := $m.OutputType | getMessageType $.File -}}
-	{{""}} ({{"chan *"}}{{$package}}{{"." -}}{{$t.Name}}, {{"1000"}})
-{{- end}}
 
-  req := &{{$package}}.
-	{{- with $t := $m.InputType | getMessageType $.File}}
-	    {{- $t.Name}} {{- "{" -}} {{template "iterateOnFieldsToFill" $t -}} }
-  {{- end}}
-  c, err := client.{{$m.Name}}(ctx, req)
-  if err != nil {
-    return nil, err
-  }
+    req := &{{$package}}.
+    {{- with $t := $m.InputType | getMessageType $.File}}
+      {{- $t.Name}} {{- "{" -}} {{template "iterateOnFieldsToFill" $t -}} }
+    {{- end}}
+    c, err := client.{{$m.Name}}(ctx, req)
+    if err != nil {
+      return err
+    }
 
-  go func() {
     for {
-			res, err := c.Recv()
-			if err == io.EOF {
-				conn.Close()
-				close(chann)
-				break
-			}
-			if err != nil {
-				return
-			}
-			chann <- res
-		}
-	}()
+      res, err := c.Recv()
+      if err == io.EOF {
+        break
+      }
+      err = callback(res, err)
+  	  if err != nil {
+  		  return err
+  		}
+    }
 
-	return chann, nil
+    return nil
 }
 {{- else}}
 func Svc{{$m.Name}}

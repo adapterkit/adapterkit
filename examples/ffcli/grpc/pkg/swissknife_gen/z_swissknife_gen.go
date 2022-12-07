@@ -2,7 +2,6 @@ package swissknife_gen //nolint
 
 import (
 	"context"
-	"log"
 
 	swissknife "github.com/pmg-tools/adapterkit-module-swissknife"
 	"google.golang.org/grpc"
@@ -14,7 +13,7 @@ func SvcConvHexa(input string) (*swissknife.ConvHexaRes, error) {
 
 	conn, err := grpc.DialContext(ctx, "127.0.0.1:9314", grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 	defer conn.Close()
 
@@ -33,7 +32,7 @@ func SvcConvBase64(input string) (*swissknife.ConvBase64Res, error) {
 
 	conn, err := grpc.DialContext(ctx, "127.0.0.1:9314", grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 	defer conn.Close()
 

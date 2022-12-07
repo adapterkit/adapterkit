@@ -101,19 +101,21 @@ func {{$p}}() *ffcli.Command {
 		FlagSet:    {{$p}}FlagSet,
 		Exec: func(_ context.Context, _ []string) error {
 		{{- if and $m.ServerStreaming (not $m.ClientStreaming)}}
-        result, err := {{template "PKG" $package}}.Svc{{$m.Name}}({{template "iterateOnFieldsName" $t}})
+        callback := func(res
+        {{- with $t := $m.OutputType | getMessageType $.File -}}
+          {{" *"}}{{$package}}{{"." -}}{{$t.Name}}
+        {{- end}}, err error) error {
+				  // you can modify this callback function
+				  if err != nil {
+					  return err
+				  }
+				  fmt.Println(res)
+				  return nil
+			  }
+        err := {{template "PKG" $package}}.Svc{{$m.Name}}({{template "iterateOnFieldsName" $t}}, callback)
         if err != nil {
           return err
 			  }
-
-        for {
-        	res, ok := <-result
-        	if !ok {
-        		break
-        	}
-
-        	fmt.Println(res)
-        }
 
         return nil
       },

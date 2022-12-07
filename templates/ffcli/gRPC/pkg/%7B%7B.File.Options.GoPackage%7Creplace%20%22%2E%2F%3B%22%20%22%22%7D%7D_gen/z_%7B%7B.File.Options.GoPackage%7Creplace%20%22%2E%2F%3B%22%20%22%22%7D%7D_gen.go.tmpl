@@ -8,7 +8,6 @@ import (
   "io"
   {{break}}
 {{end}}{{end}}
-	"log"
 
 	{{$package}} "$[ADAPTERKIT_LOGIC_PACKAGE]"
 	"google.golang.org/grpc"
@@ -49,7 +48,7 @@ func Svc{{$m.Name}}
 
 	conn, err := grpc.DialContext(ctx, {{/* MUST BE REPLACED BY ARG GEST */}}"127.0.0.1:9314", grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 	defer conn.Close()
 
@@ -68,22 +67,20 @@ func Svc{{$m.Name}}
 {{- else if and $m.ServerStreaming (not $m.ClientStreaming)}}
 func Svc{{$m.Name}}
 {{- with $t := $m.InputType | getMessageType $.File -}}
- ( {{- template "iterateOnFieldsName&Type" $t}})
+ ( {{- template "iterateOnFieldsName&Type" $t}}
 {{- end}}
 {{- with $t := $m.OutputType | getMessageType $.File -}}
- {{""}} ({{"chan *"}}{{$package}}{{"." -}}{{$t.Name}}, error)
+ {{""}} ,{{"callback func (*"}}{{$package}}{{"." -}}{{$t.Name}}, error) error) error
 {{- end}} {
   ctx := context.Background()
 
   conn, err := grpc.DialContext(ctx, {{/* MUST BE REPLACED BY ARG GEST */}}"127.0.0.1:9314", grpc.WithTransportCredentials(insecure.NewCredentials()))
   if err != nil {
-    log.Fatal(err)
+    return err
   }
+  defer conn.Close()
+
   client := {{$package}}.New{{$package | title}}SvcClient(conn)
-  chann := make
-  {{- with $t := $m.OutputType | getMessageType $.File -}}
-  	{{""}} ({{"chan *"}}{{$package}}{{"." -}}{{$t.Name}}, {{"1000"}})
-  {{- end}}
 
   req := &{{$package}}.
   {{- with $t := $m.InputType | getMessageType $.File}}
@@ -91,25 +88,21 @@ func Svc{{$m.Name}}
   {{- end}}
   c, err := client.{{$m.Name}}(ctx, req)
   if err != nil {
-    return nil, err
+    return err
   }
 
-  go func() {
-    for {
-  	  res, err := c.Recv()
-  	  if err == io.EOF {
-  		  conn.Close()
-  		  close(chann)
-  		  break
-  	  }
-  	  if err != nil {
-  		  return
-  	  }
-  	  chann <- res
+  for {
+    res, err := c.Recv()
+    if err == io.EOF {
+      break
     }
-  }()
+    err = callback(res, err)
+	  if err != nil {
+		  return err
+		}
+  }
 
-  return chann, nil
+  return nil
 }
 {{- else}}
 	panic("not implemented")

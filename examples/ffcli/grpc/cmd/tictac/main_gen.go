@@ -58,19 +58,18 @@ func countdown() *ffcli.Command {
 		Options:    []ff.Option{ff.WithEnvVarNoPrefix()},
 		FlagSet:    countdownFlagSet,
 		Exec: func(_ context.Context, _ []string) error {
-        result, err := tictac_gen.SvcCountdown(count, msg)
+        callback := func(res *tictac.CountdownRes, err error) error {
+				  // you can modify this callback function
+				  if err != nil {
+					  return err
+				  }
+				  fmt.Println(res)
+				  return nil
+			  }
+        err := tictac_gen.SvcCountdown(count, msg, callback)
         if err != nil {
           return err
 			  }
-
-        for {
-        	res, ok := <-result
-        	if !ok {
-        		break
-        	}
-
-        	fmt.Println(res)
-        }
 
         return nil
       },
