@@ -64,6 +64,17 @@ func Cmd() *climan.Command {
 				return err
 			}
 
+			// fmt the generated files
+			if u.CommandExists("gofmt") {
+				cmd = exec.Command("gofmt", "-w", outputDir)
+				cmd.Stdout = os.Stdout
+				cmd.Stderr = os.Stderr
+				err = cmd.Run()
+				if err != nil {
+					return err
+				}
+			}
+
 			return nil
 		},
 	}
