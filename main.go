@@ -8,10 +8,10 @@ import (
 	"math/rand"
 	"os"
 
+	"github.com/adapterkit/adapterkit/pkg/generate"
 	"github.com/peterbourgon/ff/v3"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
-	"moul.io/adapterkit/pkg/generate"
 	"moul.io/climan"
 	"moul.io/motd"
 	"moul.io/srand"

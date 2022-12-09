@@ -1,4 +1,4 @@
-module moul.io/adapterkit
+module github.com/adapterkit/adapterkit
 
 go 1.19
 
