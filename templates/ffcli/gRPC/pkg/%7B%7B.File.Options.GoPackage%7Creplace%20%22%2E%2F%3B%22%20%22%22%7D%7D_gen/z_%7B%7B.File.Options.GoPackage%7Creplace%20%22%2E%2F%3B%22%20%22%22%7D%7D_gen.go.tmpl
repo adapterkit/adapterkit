@@ -3,7 +3,11 @@ package {{$package}}_gen //nolint
 
 import (
 	"context"
-	"log"
+{{- range $m := .Service.Method}}
+{{- if and .ServerStreaming (not .ClientStreaming)}}
+  "io"
+  {{break}}
+{{end}}{{end}}
 
 	{{$package}} "$[ADAPTERKIT_LOGIC_PACKAGE]"
 	"google.golang.org/grpc"
@@ -28,10 +32,11 @@ import (
 {{- end}}{{end}}{{end}}
 
 {{- define "iterateOnFieldsToFill"}}{{with $t := .}}
-    {{- range $i, $f := $t.Field -}}{{template "notOnFirstIter" $x := list $i ", " -}}  {{$f.Name | title}}: {{$f.Name}}
+    {{- range $i, $f := $t.Field -}}{{template "notOnFirstIter" $x := list $i ", " -}}  {{$f.Name | camelCase}}: {{$f.Name}}
 {{- end}}{{end}}{{end}}
 
 {{- range $m := .Service.Method}}
+{{- if and (not .ServerStreaming) (not .ClientStreaming)}}
 func Svc{{$m.Name}}
 {{- with $t := $m.InputType | getMessageType $.File -}}
 	( {{- template "iterateOnFieldsName&Type" $t -}} )
@@ -39,12 +44,11 @@ func Svc{{$m.Name}}
 {{- with $t := $m.OutputType | getMessageType $.File -}}
 	{{""}} ({{"*"}}{{$package}}{{"." -}}{{$t.Name}}, error)
 {{- end}} {
-{{- if and (not .ServerStreaming) (not .ClientStreaming)}}
 	ctx := context.Background()
 
 	conn, err := grpc.DialContext(ctx, {{/* MUST BE REPLACED BY ARG GEST */}}"127.0.0.1:9314", grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 	defer conn.Close()
 
@@ -59,6 +63,46 @@ func Svc{{$m.Name}}
 	}
 
 	return res, nil
+}
+{{- else if and $m.ServerStreaming (not $m.ClientStreaming)}}
+func Svc{{$m.Name}}
+{{- with $t := $m.InputType | getMessageType $.File -}}
+ ( {{- template "iterateOnFieldsName&Type" $t}}
+{{- end}}
+{{- with $t := $m.OutputType | getMessageType $.File -}}
+ {{""}} ,{{"callback func (*"}}{{$package}}{{"." -}}{{$t.Name}}, error) error) error
+{{- end}} {
+  ctx := context.Background()
+
+  conn, err := grpc.DialContext(ctx, {{/* MUST BE REPLACED BY ARG GEST */}}"127.0.0.1:9314", grpc.WithTransportCredentials(insecure.NewCredentials()))
+  if err != nil {
+    return err
+  }
+  defer conn.Close()
+
+  client := {{$package}}.New{{$package | title}}SvcClient(conn)
+
+  req := &{{$package}}.
+  {{- with $t := $m.InputType | getMessageType $.File}}
+    {{- $t.Name}} {{- "{" -}} {{template "iterateOnFieldsToFill" $t -}} }
+  {{- end}}
+  c, err := client.{{$m.Name}}(ctx, req)
+  if err != nil {
+    return err
+  }
+
+  for {
+    res, err := c.Recv()
+    if err == io.EOF {
+      break
+    }
+    err = callback(res, err)
+	  if err != nil {
+		  return err
+		}
+  }
+
+  return nil
 }
 {{- else}}
 	panic("not implemented")

@@ -57,7 +57,7 @@ func convHexa() *ffcli.Command {
 		Options:    []ff.Option{ff.WithEnvVarNoPrefix()},
 		FlagSet:    convHexaFlagSet,
 		Exec: func(_ context.Context, _ []string) error {
-			result, err := swissknife_gen.SvcConvHexa(input)
+      result, err := swissknife_gen.SvcConvHexa(input)
 			if err != nil {
 				return err
 			}
@@ -78,7 +78,7 @@ func convBase64() *ffcli.Command {
 		Options:    []ff.Option{ff.WithEnvVarNoPrefix()},
 		FlagSet:    convBase64FlagSet,
 		Exec: func(_ context.Context, _ []string) error {
-			result, err := swissknife_gen.SvcConvBase64(input)
+      result, err := swissknife_gen.SvcConvBase64(input)
 			if err != nil {
 				return err
 			}

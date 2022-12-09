@@ -3,7 +3,11 @@ package {{$package}}_gen //nolint
 
 import (
 	"context"
-	"log"
+{{- range $m := .Service.Method}}
+{{- if and .ServerStreaming (not .ClientStreaming)}}
+  "io"
+  {{break}}
+{{end}}{{end}}
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -30,10 +34,12 @@ import (
 {{- end}}{{end}}{{end}}
 
 {{- define "iterateOnFieldsToFill"}}{{with $t := .}}
-	{{- range $i, $f := $t.Field -}}{{template "notOnFirstIter" $x := list $i ", " -}}  {{$f.Name | title}}: {{$f.Name}}
+	{{- range $i, $f := $t.Field -}}{{template "notOnFirstIter" $x := list $i ", " -}}  {{$f.Name | camelCase}}: {{$f.Name}}
 {{- end}}{{end}}{{end}}
 
+
 {{- range $m := .Service.Method}}
+{{- if and (not $m.ServerStreaming) (not $m.ClientStreaming)}}
 func Svc{{$m.Name}}
 {{- with $t := $m.InputType | getMessageType $.File -}}
 	( {{- template "iterateOnFieldsName&Type" $t}} svc {{$package}}.{{$package | title}}SvcServer)
@@ -41,14 +47,13 @@ func Svc{{$m.Name}}
 {{- with $t := $m.OutputType | getMessageType $.File -}}
 	{{""}} ({{"*"}}{{$package}}{{"." -}}{{$t.Name}}, error)
 {{- end}} {
-{{- if and (not .ServerStreaming) (not .ClientStreaming)}}
 	ctx := context.Background()
 
 	conn, err := grpc.DialContext(ctx, "",
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 		grpc.WithContextDialer(lib.Dialer(svc, {{$package}}.Register{{$package | title}}SvcServer)))
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 	defer conn.Close()
 
@@ -64,7 +69,56 @@ func Svc{{$m.Name}}
 
 	return res, nil
 }
+{{- else if and $m.ServerStreaming (not $m.ClientStreaming)}}
+func Svc{{$m.Name}}
+{{- with $t := $m.InputType | getMessageType $.File -}}
+	( {{- template "iterateOnFieldsName&Type" $t}} svc {{$package}}.{{$package | title}}SvcServer
+{{- end}}
+{{- with $t := $m.OutputType | getMessageType $.File -}}
+ {{""}} ,{{"callback func (*"}}{{$package}}{{"." -}}{{$t.Name}}, error) error) error
+{{- end}} {
+  ctx := context.Background()
+
+	conn, err := grpc.DialContext(ctx, "",
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+		grpc.WithContextDialer(lib.Dialer(svc, {{$package}}.Register{{$package | title}}SvcServer)))
+	if err != nil {
+		return err
+	}
+	defer conn.Close()
+
+	client := {{$package}}.New{{$package | title}}SvcClient(conn)
+
+    req := &{{$package}}.
+    {{- with $t := $m.InputType | getMessageType $.File}}
+      {{- $t.Name}} {{- "{" -}} {{template "iterateOnFieldsToFill" $t -}} }
+    {{- end}}
+    c, err := client.{{$m.Name}}(ctx, req)
+    if err != nil {
+      return err
+    }
+
+    for {
+      res, err := c.Recv()
+      if err == io.EOF {
+        break
+      }
+      err = callback(res, err)
+  	  if err != nil {
+  		  return err
+  		}
+    }
+
+    return nil
+}
 {{- else}}
+func Svc{{$m.Name}}
+{{- with $t := $m.InputType | getMessageType $.File -}}
+	( {{- template "iterateOnFieldsName&Type" $t}} svc {{$package}}.{{$package | title}}SvcServer)
+{{- end}}
+{{- with $t := $m.OutputType | getMessageType $.File -}}
+	{{""}} ({{"*"}}{{$package}}{{"." -}}{{$t.Name}}, error)
+{{- end}} {
 	panic("not implemented")
 }
 {{- end}}
