@@ -5,20 +5,17 @@ import (
 	"flag"
 	"fmt"
 	"log"
-	"net"
 	"os"
 
 	"test/pkg/tictac_gen"
 
-	"google.golang.org/grpc"
-
+	tictac "github.com/Doozers/adapterkit-module-tictac"
 	"github.com/peterbourgon/ff/v3"
 	"github.com/peterbourgon/ff/v3/ffcli"
-	tictac "github.com/Doozers/adapterkit-module-tictac"
 )
 
 func initSvc() tictac.TictacSvcServer {
-	return tictac.New() // you should need to modify it depending on your service
+	return tictac.New()
 }
 
 func main() {
@@ -36,7 +33,6 @@ func tictacRun(args []string) error {
 		Options:    []ff.Option{ff.WithEnvVarNoPrefix()},
 		Subcommands: []*ffcli.Command{
 			countdown(),
-			server(),
 		},
 		Exec: func(_ context.Context, _ []string) error {
 			return flag.ErrHelp
@@ -48,50 +44,30 @@ func tictacRun(args []string) error {
 
 func countdown() *ffcli.Command {
 	var count int64
-    var msg string
+	var msg string
 	countdownFlagSet := flag.NewFlagSet("countdown", flag.ExitOnError)
 	countdownFlagSet.Int64Var(&count, "Count", 0, "")
-    countdownFlagSet.StringVar(&msg, "Msg", "", "")
+	countdownFlagSet.StringVar(&msg, "Msg", "", "")
 	return &ffcli.Command{
 		Name:       "countdown",
 		ShortUsage: "tictac countdown ${input}",
 		Options:    []ff.Option{ff.WithEnvVarNoPrefix()},
 		FlagSet:    countdownFlagSet,
 		Exec: func(_ context.Context, _ []string) error {
-        callback := func(res *tictac.CountdownRes, err error) error {
-				  // you can modify this callback function
-				  if err != nil {
-					  return err
-				  }
-				  fmt.Println(res)
-				  return nil
-			  }
-        err := tictac_gen.SvcCountdown(count, msg, callback)
-        if err != nil {
-          return err
-			  }
-
-        return nil
-      },
-    }
-  }
-
-func server() *ffcli.Command {
-	return &ffcli.Command{
-		Name:       "server",
-		ShortUsage: "tictac start",
-		Options:    []ff.Option{ff.WithEnvVarNoPrefix()},
-		Exec: func(_ context.Context, _ []string) error {
-			lis, err := net.Listen("tcp", "127.0.0.1:9314")
+			callback := func(res *tictac.CountdownRes, err error) error {
+				// you can modify this callback function
+				if err != nil {
+					return err
+				}
+				fmt.Println(res)
+				return nil
+			}
+			err := tictac_gen.SvcCountdown(count, msg, initSvc(), callback)
 			if err != nil {
 				return err
 			}
-			grpcServer := grpc.NewServer()
 
-			tictac.RegisterTictacSvcServer(grpcServer, initSvc())
-
-			fmt.Println("starting demo-mod_gen server on port 9314:")
-			return grpcServer.Serve(lis)
+			return nil
 		},
 	}
 }

@@ -3,6 +3,7 @@ module test
 go 1.19
 
 require (
+	github.com/Doozers/adapterkit-module-tictac v0.0.0-20221205141917-c7e29e0b9310
 	github.com/peterbourgon/ff/v3 v3.3.0
 	github.com/pmg-tools/adapterkit-module-swissknife v0.0.0-20221108131630-cedbc69f5d28
 	google.golang.org/grpc v1.51.0
